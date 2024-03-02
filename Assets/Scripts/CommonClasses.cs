@@ -142,7 +142,7 @@ public class SystemVersion : SimulatorElement
     {
         this.versionIndex = versionIndex;
         this.versionName = "";
-        this.threatIndexesInSystemVersion = new int[] { 0 };
+        this.threatIndexesInSystemVersion = new int[] {};
     }
 
     public SystemVersion(int versionIndex, string versionName, int[] threatIndexesInSystemVersion)
@@ -180,7 +180,12 @@ public class Threat : SimulatorElement
             this.threatLockPathToSound = threatLockPathToSound;
         }
 
-        public ThreatLock() { }
+        public ThreatLock()
+        {
+            this.threatLockName = "";
+            this.threatLockPathsToSymbols = new string[] { };
+            this.threatLockPathToSound = "";
+        }
     }
 
     public int threatIndex;
@@ -261,6 +266,13 @@ public class UserResponse : SimulatorElement
     {
         return responseName;
     }
+
+    public UserResponse(int index)
+    {
+        responseIndex = index;
+        responseName = "";
+        isResponseCausesToEndOfScenario = false;
+    }
 }
 
 [System.Serializable]
@@ -280,6 +292,16 @@ public class EducationalScreen : SimulatorElement
     {
         return educationalScreenName;
     }
+
+    public EducationalScreen(int index)
+    {
+        educationalScreenIndex = index;
+        educationalScreenName = "";
+        isEducationalScreenBasedOnImage = false;
+        educationalScreenPathToImage = "";
+        educationalScreenText = "";
+
+    }
 }
 
 [System.Serializable]
@@ -288,9 +310,14 @@ public class Scenario : SimulatorElement
     [System.Serializable]
     public class SteerPoint : SimulatorClass
     {
-        public int steerPointIndex;
         public string N;
         public string E;
+
+        public SteerPoint()
+        {
+            this.N = "";
+            this.E = "";
+        }
     }
 
     [System.Serializable]
@@ -299,39 +326,68 @@ public class Scenario : SimulatorElement
         [System.Serializable]
         public class UserResponeToThreat : SimulatorClass
         {
-            public int userResponeIndex;
+            public int userResponeLinkIndex;
             public float responeToThreatScore;
-            public bool responseToThreatExplanation;
+            public string responseToThreatExplanation;
             public bool isOverridingEndOfScenarioEducationalScreen;
-            public int overrideEducationalScreenIndex;
+            public int overrideEducationalScreenLinkIndex;
+
+            public UserResponeToThreat()
+            {
+                userResponeLinkIndex = 0;
+                responeToThreatScore = 0f;
+                responseToThreatExplanation = "";
+                isOverridingEndOfScenarioEducationalScreen = false;
+                overrideEducationalScreenLinkIndex = 0;
+            }
         }
 
         [System.Serializable]
         public class ActiveThreatEvent : SimulatorClass
         {
-            public string threatLock;
+            public int threatLockLinkIndex;
             public float threatEventTime;
             public bool isPlayingThreatLockSound;
+
+            public ActiveThreatEvent()
+            {
+                threatLockLinkIndex = 0;
+                threatEventTime = 0f;
+                isPlayingThreatLockSound = false;
+            }
         }
 
         public int activeThreatIndex;
         public SteerPoint threatPosition;
         public float threatApperanceTime;
-        public List<ActiveThreatEvent> activeThreatEvents;
+        public ActiveThreatEvent[] activeThreatEvents;
         public float threatDifficultyFactor;
         public float minResponseTime;
         public float maxReasonableResponeTime;
-        public List<UserResponeToThreat> userResponesToThreats;
+        public UserResponeToThreat[] userResponesToThreats;
+
+        public ActiveThreat()
+        {
+            activeThreatIndex = 0;
+            threatPosition = new SteerPoint();
+            threatApperanceTime = 0f;
+            activeThreatEvents = new ActiveThreatEvent[] { };
+            threatDifficultyFactor = 0f;
+            minResponseTime = 0f;
+            maxReasonableResponeTime = 0f;
+            userResponesToThreats = new UserResponeToThreat[] { };
+        }
     }
 
     public int scenarioIndex;
     public string scenarioName;
-    public List<SteerPoint> airplaneSteerPoints;
+    public SteerPoint[] airplaneSteerPoints;
     public float airplaneHeight;
     public float airplaneVelocity;
-    public List<int> userResponesInScenario;
+    public ActiveThreat[] activeThreats;
+    public int[] userResponsesIndexInScenario;
     public bool hasEndOfScenarioEducationalScreen;
-    public int endOfScenarioEducationalScreenIndex;
+    public int endOfScenarioEducationalScreenLinkIndex;
 
     public override int getIndex()
     {
@@ -342,6 +398,21 @@ public class Scenario : SimulatorElement
         return scenarioName;
     }
 
+    public Scenario(int index)
+    {
+        scenarioIndex = index;
+        scenarioName = "";
+        airplaneSteerPoints = new SteerPoint[] { };
+        airplaneHeight = 0f;
+        airplaneVelocity = 0f;
+        activeThreats = new ActiveThreat[] { };
+        userResponsesIndexInScenario = new int[] { };
+        hasEndOfScenarioEducationalScreen = false;
+        endOfScenarioEducationalScreenLinkIndex = 0;
+
+
+    }
+
 }
 
 [System.Serializable]
@@ -349,7 +420,7 @@ public class Train : SimulatorElement
 {
     public int trainIndex;
     public string trainName;
-    public List<int> trainScenarioIndex;
+    public int[] trainScenarioIndex;
 
     public override int getIndex()
     {
@@ -358,5 +429,12 @@ public class Train : SimulatorElement
     public override string getName()
     {
         return trainName;
+    }
+
+    public Train(int index)
+    {
+        trainIndex = index;
+        trainName = "";
+        trainScenarioIndex = new int[] { };
     }
 }

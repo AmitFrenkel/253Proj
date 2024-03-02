@@ -95,7 +95,7 @@ public class CollapsibleButtonsMainVerticalPanel : MainVerticalPanel
         return panelWidth;
     }
 
-    public void addUIMenuButton(string buttonCategory, string buttonName, int buttonIndex, bool isSelected = false)
+    public void addUIMenuButton(string buttonCategory, string buttonName, int buttonIndex, bool isSelected)
     {
         if (isSelected && isAnyButtonSelected)
         {
@@ -109,6 +109,8 @@ public class CollapsibleButtonsMainVerticalPanel : MainVerticalPanel
         newUIMenuButton.initUIMenuButton();
         newUIMenuButton.fillContentInButton(buttonCategory, buttonName, buttonIndex, this, isSelected);
         menuButtons.Add(newUIMenuButton);
+        if (isSelected)
+            isAnyButtonSelected = true;
     }
 
     public void editButtonName(int buttonIndex, string buttonNewName)

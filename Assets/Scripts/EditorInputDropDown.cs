@@ -23,16 +23,24 @@ public class EditorInputDropDown : EditorLine
         }
     }
 
-    public void initEditorIndputDropDown(MainContentManager.SimulatorTypes simulatorCategory, int selectedValue, MainContentManager mainContentManager)
+    public void initEditorIndputDropDown(MainContentManager.SimulatorTypes simulatorCategory, int selectedValue, MainContentManager mainContentManager, float xOffset)
     {
         this.mainContentManager = mainContentManager;
+        editorElementHeight = -UIViewConfigurations.dataLineHeight;
         indexAndNames = new List<IndexAndName>();
+        this.xOffset = xOffset;
         dropDownField.options = new List<TMP_Dropdown.OptionData>();
         SimulatorDatabase simulatorDatabase = mainContentManager.getSimulatorDatabase();
         List<SimulatorElement> simulatorElements = null;
         switch (simulatorCategory)
         {
+            case MainContentManager.SimulatorTypes.SystemVersion: simulatorElements = simulatorDatabase.systemVersions.ConvertAll(x => (SimulatorElement)x); break;
             case MainContentManager.SimulatorTypes.Threat: simulatorElements = simulatorDatabase.threats.ConvertAll(x => (SimulatorElement)x); break;
+            case MainContentManager.SimulatorTypes.MapCircle: simulatorElements = simulatorDatabase.mapCircles.ConvertAll(x => (SimulatorElement)x); break;
+            case MainContentManager.SimulatorTypes.UserResponse: simulatorElements = simulatorDatabase.userResponses.ConvertAll(x => (SimulatorElement)x); break;
+            case MainContentManager.SimulatorTypes.EducationalScreen: simulatorElements = simulatorDatabase.educationalScreens.ConvertAll(x => (SimulatorElement)x); break;
+            case MainContentManager.SimulatorTypes.Scenario: simulatorElements = simulatorDatabase.scenarios.ConvertAll(x => (SimulatorElement)x); break;
+            case MainContentManager.SimulatorTypes.Train: simulatorElements = simulatorDatabase.trains.ConvertAll(x => (SimulatorElement)x); break;
             default: Debug.Log("could not find type!"); break;
         }
 
@@ -51,6 +59,7 @@ public class EditorInputDropDown : EditorLine
             dropDownField.value = selectedDropDownValue;
         else
             Debug.Log("could not find selected row in dropdown!");
+        
 
     }
 
@@ -76,9 +85,9 @@ public class EditorInputDropDown : EditorLine
             editorInputList.deleteElementInList(this);
     }
 
-    public void lockEditorInputLineFromEdit()
+    public override void reorderEditorElement()
     {
-        //inputField.interactable = false;
+        this.GetComponent<RectTransform>().anchoredPosition = new Vector2(xOffset, baseHeight);
     }
 
 }

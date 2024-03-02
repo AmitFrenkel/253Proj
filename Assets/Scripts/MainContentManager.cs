@@ -17,6 +17,7 @@ public class MainContentManager : MonoBehaviour
     private int presentedElementIndex;
     public GameObject saveButton;
     public GameObject deleteButton;
+    public GameObject addNewElementButton;
 
     public enum SimulatorTypes { SystemVersion, Threat, MapCircle, UserResponse, EducationalScreen, Scenario, Train };
 
@@ -49,12 +50,14 @@ public class MainContentManager : MonoBehaviour
 
     private void selectMainCategory(string categoryName)
     {
+        clearLoadedElement();
         presentedCategory = categoryName;
         elementsMainPanel.clearButtonsForPanel();
         List<SimulatorElement> simulatorElementsFromCategory = getListOfSimulatorElementsFromCategory(simulatorDatabase, categoryName);
         foreach (SimulatorElement simulatorElement in simulatorElementsFromCategory)
-            elementsMainPanel.addUIMenuButton(categoryName, simulatorElement.getName(), simulatorElement.getIndex());
+            elementsMainPanel.addUIMenuButton(categoryName, simulatorElement.getName(), simulatorElement.getIndex(), false);
         elementsMainPanel.reorderUIMenuButtons();
+        addNewElementButton.SetActive(true);
     }
 
     private void loadElement(string category, int elementIndex)
@@ -65,9 +68,13 @@ public class MainContentManager : MonoBehaviour
         SimulatorElement selectedSimulatorElement = null;
         switch (category)
         {
-            case "SystemVersions": selectedSimulatorElement = simulatorDatabase.getSystemVersionByIndex(elementIndex); break;
-            case "Threats": selectedSimulatorElement = simulatorDatabase.getThreatByIndex(elementIndex); break;
-            case "Circles": selectedSimulatorElement = simulatorDatabase.getMapCircleByIndex(elementIndex); break;
+            case "SystemVersion": selectedSimulatorElement = simulatorDatabase.getSystemVersionByIndex(elementIndex); break;
+            case "Threat": selectedSimulatorElement = simulatorDatabase.getThreatByIndex(elementIndex); break;
+            case "MapCircle": selectedSimulatorElement = simulatorDatabase.getMapCircleByIndex(elementIndex); break;
+            case "UserResponse": selectedSimulatorElement = simulatorDatabase.getUserResponseByIndex(elementIndex); break;
+            case "EducationalScreen": selectedSimulatorElement = simulatorDatabase.getEducationalScreenByIndex(elementIndex); break;
+            case "Scenario": selectedSimulatorElement = simulatorDatabase.getScenarioByIndex(elementIndex); break;
+            case "Train": selectedSimulatorElement = simulatorDatabase.getTrainByIndex(elementIndex); break;
         }
         presentedSimulatorElement = selectedSimulatorElement;
         GameObject editorEntity = Instantiate(editorEntityPrefab) as GameObject;
@@ -86,23 +93,43 @@ public class MainContentManager : MonoBehaviour
         int nextIndex = 0;
         switch (presentedCategory)
         {
-            case "SystemVersions": nextIndex = simulatorDatabase.getNextSystemVersionIndex(); break;
-            case "Threats": nextIndex = simulatorDatabase.getNextThreatIndex(); break;
-            case "Circles": nextIndex = simulatorDatabase.getNextMapCircleIndex(); break;
+            case "SystemVersion": nextIndex = simulatorDatabase.getNextSystemVersionIndex(); break;
+            case "Threat": nextIndex = simulatorDatabase.getNextThreatIndex(); break;
+            case "MapCircle": nextIndex = simulatorDatabase.getNextMapCircleIndex(); break;
+            case "UserResponse": nextIndex = simulatorDatabase.getNextUserResponseIndex(); break;
+            case "EducationalScreen": nextIndex = simulatorDatabase.getNextEducationalScreenIndex(); break;
+            case "Scenario": nextIndex = simulatorDatabase.getNextScenarioIndex(); break;
+            case "Train": nextIndex = simulatorDatabase.getNextTrainIndex(); break;
         }
         switch (presentedCategory)
         {
-            case "SystemVersions":
+            case "SystemVersion":
                 SystemVersion systemVersion = new SystemVersion(nextIndex);
                 simulatorDatabase.systemVersions.Add(systemVersion);
                 break;
-            case "Threats":
+            case "Threat":
                 Threat threat = new Threat(nextIndex);
                 simulatorDatabase.threats.Add(threat);
                 break;
-            case "Circles":
+            case "MapCircle":
                 MapCircle mapCicle = new MapCircle(nextIndex);
                 simulatorDatabase.mapCircles.Add(mapCicle);
+                break;
+            case "UserResponse":
+                UserResponse userResponse = new UserResponse(nextIndex);
+                simulatorDatabase.userResponses.Add(userResponse);
+                break;
+            case "EducationalScreen":
+                EducationalScreen educationalScreen = new EducationalScreen(nextIndex);
+                simulatorDatabase.educationalScreens.Add(educationalScreen);
+                break;
+            case "Scenario":
+                Scenario scenario = new Scenario(nextIndex);
+                simulatorDatabase.scenarios.Add(scenario);
+                break;
+            case "Train":
+                Train train = new Train(nextIndex);
+                simulatorDatabase.trains.Add(train);
                 break;
         }
         elementsMainPanel.addUIMenuButton(presentedCategory, "<Unnamed>", nextIndex, true);
@@ -134,7 +161,11 @@ public class MainContentManager : MonoBehaviour
         {
             case "SystemVersions": simulatorDatabase.systemVersions.Remove(simulatorDatabase.getSystemVersionByIndex(presentedElementIndex)); break;
             case "Threats": simulatorDatabase.threats.Remove(simulatorDatabase.getThreatByIndex(presentedElementIndex)); break;
-            case "Circles": simulatorDatabase.mapCircles.Remove(simulatorDatabase.getMapCircleByIndex(presentedElementIndex)); break;
+            case "MapCircle": simulatorDatabase.mapCircles.Remove(simulatorDatabase.getMapCircleByIndex(presentedElementIndex)); break;
+            case "UserResponse": simulatorDatabase.userResponses.Remove(simulatorDatabase.getUserResponseByIndex(presentedElementIndex)); break;
+            case "EducationalScreen": simulatorDatabase.educationalScreens.Remove(simulatorDatabase.getEducationalScreenByIndex(presentedElementIndex)); break;
+            case "Scenario": simulatorDatabase.scenarios.Remove(simulatorDatabase.getScenarioByIndex(presentedElementIndex)); break;
+            case "Train": simulatorDatabase.trains.Remove(simulatorDatabase.getTrainByIndex(presentedElementIndex)); break;
         }
         elementsMainPanel.removeUIMenuButton(presentedElementIndex);
         clearLoadedElement();
@@ -156,20 +187,40 @@ public class MainContentManager : MonoBehaviour
         List<SimulatorElement> simulatorElements = new List<SimulatorElement>();
         switch (categoryName)
         {
-            case "SystemVersions":
+            case "SystemVersion":
                 if (simulatorDatabase.systemVersions != null)
                     foreach (SystemVersion loopElement in simulatorDatabase.systemVersions)
                         simulatorElements.Add(loopElement);
                         
                 break;
-            case "Threats":
+            case "Threat":
                 if (simulatorDatabase.threats != null)
                     foreach (Threat loopElement in simulatorDatabase.threats)
                         simulatorElements.Add(loopElement);
                 break;
-            case "Circles":
+            case "MapCircle":
                 if (simulatorDatabase.mapCircles != null)
                     foreach (MapCircle loopElement in simulatorDatabase.mapCircles)
+                        simulatorElements.Add(loopElement);
+                break;
+            case "UserResponse":
+                if (simulatorDatabase.userResponses != null)
+                    foreach (UserResponse loopElement in simulatorDatabase.userResponses)
+                        simulatorElements.Add(loopElement);
+                break;
+            case "EducationalScreen":
+                if (simulatorDatabase.educationalScreens != null)
+                    foreach (EducationalScreen loopElement in simulatorDatabase.educationalScreens)
+                        simulatorElements.Add(loopElement);
+                break;
+            case "Scenario":
+                if (simulatorDatabase.scenarios != null)
+                    foreach (Scenario loopElement in simulatorDatabase.scenarios)
+                        simulatorElements.Add(loopElement);
+                break;
+            case "Train":
+                if (simulatorDatabase.trains != null)
+                    foreach (Train loopElement in simulatorDatabase.trains)
                         simulatorElements.Add(loopElement);
                 break;
         }
@@ -229,6 +280,14 @@ public class MainContentManager : MonoBehaviour
                                                  },
                                                  5f,
                                                  2.5f));
+
+        simulatorDatabase.userResponses = new List<UserResponse>();
+
+        simulatorDatabase.educationalScreens = new List<EducationalScreen>();
+
+        simulatorDatabase.scenarios = new List<Scenario>();
+
+        simulatorDatabase.trains = new List<Train>();
 
 
         return simulatorDatabase;

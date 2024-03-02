@@ -42,7 +42,6 @@ public class EditorInputList : EditorLine
     {
         GameObject newEditorInputLine = Instantiate(editorLinePrefab) as GameObject;
         newEditorInputLine.transform.parent = this.transform;
-        //newEditorInputLine.GetComponent<RectTransform>().anchoredPosition = new Vector2(listXOffset, loopHeight);
         newEditorInputLine.GetComponent<EditorInputLine>().initEditorInputLine(listDataType, mainContentManager, xOffset);
         newEditorInputLine.GetComponent<EditorInputLine>().setDisplayName(defaultElementName);
         newEditorInputLine.GetComponent<EditorInputLine>().setValue(value);
@@ -54,8 +53,7 @@ public class EditorInputList : EditorLine
     {
         GameObject newEditorDropDown = Instantiate(editorDropdownPrefab) as GameObject;
         newEditorDropDown.transform.parent = this.transform;
-        //newEditorDropDown.GetComponent<RectTransform>().anchoredPosition = new Vector2(listXOffset, loopHeight);
-        newEditorDropDown.GetComponent<EditorInputDropDown>().initEditorIndputDropDown(listSimulatorType, selectedIndex, mainContentManager);
+        newEditorDropDown.GetComponent<EditorInputDropDown>().initEditorIndputDropDown(listSimulatorType, selectedIndex, mainContentManager, 0f);
         newEditorDropDown.GetComponent<EditorInputDropDown>().setDisplayName((editorLines.Count+1).ToString());
         newEditorDropDown.GetComponent<EditorInputDropDown>().assignToEditorInputList(this);
         editorLines.Add(newEditorDropDown.GetComponent<EditorLine>());

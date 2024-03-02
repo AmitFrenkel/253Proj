@@ -10,25 +10,32 @@ public class EditorEntitiesList : EditorLine
     public GameObject editorEntityPrefab;
     private List<EditorEntity> editorEntities;
     private float startHeight;
-    private float loopHeight;
     private const float editorLineHeight = 40f;
-    private const float listXOffset = -40f;
+    private bool hasConstantSingleElement;
     private SimulatorClass[] arrSimulatorClass;
     private Type elementsType;
     public RectTransform addButton;
     public RectTransform listHeader;
 
 
-    public void initEditorEntitiesList(SimulatorClass[] simulatorClasss, Type elementsType, MainContentManager mainContentManager, float xOffset)
+    public void initEditorEntitiesList(SimulatorClass[] simulatorClasses, Type elementsType, MainContentManager mainContentManager, float xOffset, bool hasConstantSingleElement)
     {
         this.mainContentManager = mainContentManager;
         this.xOffset = xOffset;
-        arrSimulatorClass = simulatorClasss;
+        arrSimulatorClass = simulatorClasses;
         this.elementsType = elementsType;
+        this.hasConstantSingleElement = hasConstantSingleElement;
         editorEntities = new List<EditorEntity>();
         startHeight -= editorLineHeight*2;
-        loopHeight = startHeight;
-        buildEditorEntitiesList(simulatorClasss);
+        if (hasConstantSingleElement)
+        {
+            addButton.gameObject.SetActive(false);
+            buildConstantSingleElementEntitiesList(simulatorClasses[0]);
+        }
+        else
+        {
+            buildEditorEntitiesList(simulatorClasses);
+        }
     }
 
     public void setDisplayName(string name)
@@ -36,24 +43,29 @@ public class EditorEntitiesList : EditorLine
         displayNameText.text = name;
     }
 
-    private void buildEditorEntitiesList(SimulatorClass[] simulatorClasss)
+    private void buildEditorEntitiesList(SimulatorClass[] simulatorClasses)
     {
-        for (int i=0; i< simulatorClasss.Length; i++)
+        for (int i=0; i< simulatorClasses.Length; i++)
         {
             GameObject newEditorEntity = Instantiate(editorEntityPrefab) as GameObject;
             newEditorEntity.transform.parent = this.transform;
-            //newEditorEntity.GetComponent<RectTransform>().anchoredPosition = new Vector2(listXOffset, loopHeight);
-            newEditorEntity.GetComponent<EditorEntity>().initEditorEntity(simulatorClasss[i], mainContentManager, -UIViewConfigurations.headerWidth, this);
+            newEditorEntity.GetComponent<EditorEntity>().initEditorEntity(simulatorClasses[i], mainContentManager, -UIViewConfigurations.headerWidth, this);
             editorEntities.Add(newEditorEntity.GetComponent<EditorEntity>());
         }
+    }
+
+    private void buildConstantSingleElementEntitiesList(SimulatorClass simulatorClass)
+    {
+        GameObject newEditorEntity = Instantiate(editorEntityPrefab) as GameObject;
+        newEditorEntity.transform.parent = this.transform;
+        newEditorEntity.GetComponent<EditorEntity>().initEditorEntity(simulatorClass, mainContentManager, -UIViewConfigurations.headerWidth, null);
+        editorEntities.Add(newEditorEntity.GetComponent<EditorEntity>());
     }
 
     public void deleteEditorEntityInList(EditorEntity editorEntity)
     {
         int indexOfElement = Array.IndexOf(arrSimulatorClass, editorEntity.getLinkedSimulatorClass());
-        Debug.Log("beofre delete: " + arrSimulatorClass.Length);
         RemoveAt(ref arrSimulatorClass, indexOfElement);
-        Debug.Log("after delete: " + arrSimulatorClass.Length);
         editorEntities.Remove(editorEntity);
         Destroy(editorEntity.gameObject);
         reportEditorLineModified();
@@ -65,17 +77,19 @@ public class EditorEntitiesList : EditorLine
         SimulatorClass newElement = null;
         switch (elementsType.ToString())
         {
-            case "Threat+ThreatLock": newElement = new Threat.ThreatLock("NEW NAME", new string[] { }, "<Path to sound>"); break;
+            case "Threat+ThreatLock": newElement = new Threat.ThreatLock(); break;
+            case "Scenario+SteerPoint": newElement = new Scenario.SteerPoint(); break;
+            case "Scenario+ActiveThreat": newElement = new Scenario.ActiveThreat(); break;
+            case "Scenario+ActiveThreat+ActiveThreatEvent": newElement = new Scenario.ActiveThreat.ActiveThreatEvent(); break;
+            case "Scenario+ActiveThreat+UserResponeToThreat": newElement = new Scenario.ActiveThreat.UserResponeToThreat(); break;
             default: Debug.Log("Add new type to switch case : " + elementsType.ToString()); break;
         }
         GameObject newEditorEntity = Instantiate(editorEntityPrefab) as GameObject;
         newEditorEntity.transform.parent = this.transform;
-        //newEditorEntity.GetComponent<RectTransform>().anchoredPosition = new Vector2(listXOffset, loopHeight);
         newEditorEntity.GetComponent<EditorEntity>().initEditorEntity(newElement, mainContentManager, -UIViewConfigurations.headerWidth, this);
         editorEntities.Add(newEditorEntity.GetComponent<EditorEntity>());
         Array.Resize(ref arrSimulatorClass, arrSimulatorClass.Length + 1);
         arrSimulatorClass[arrSimulatorClass.Length - 1] = newElement;
-        //loopHeight -= editorLineHeight * 3;
         reportEditorLineModified();
         reportEditorLineChangedHeight();
     }
@@ -98,7 +112,8 @@ public class EditorEntitiesList : EditorLine
             loopHeight += loopEditorEntity.getHeightOfEditorElement();
         }
         addButton.anchoredPosition = new Vector2(-UIViewConfigurations.headerWidth, loopHeight);
-        loopHeight -= UIViewConfigurations.dataLineHeight;
+        if (!hasConstantSingleElement)
+            loopHeight -= UIViewConfigurations.dataLineHeight;
         listHeader.sizeDelta = new Vector2(listHeader.sizeDelta.x, -loopHeight - UIViewConfigurations.spacingBetweenLinesHeight);
         listHeader.anchoredPosition = new Vector2(0f, 0f);
         editorElementHeight = loopHeight;

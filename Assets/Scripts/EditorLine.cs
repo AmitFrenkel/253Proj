@@ -29,7 +29,7 @@ public class EditorLine : MonoBehaviour
 
     public virtual void reorderEditorElement()
     {
-
+        // implemented in any inheritanced class differently
     }
 
     public float getHeightOfEditorElement()
