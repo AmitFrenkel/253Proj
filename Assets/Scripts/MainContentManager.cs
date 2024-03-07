@@ -248,7 +248,7 @@ public class MainContentManager : MonoBehaviour
                                                  new Threat.ThreatLock[] {
                                                      new Threat.ThreatLock("MA",
                                                                            new string[]{"path_to_symbol.jpg"},
-                                                                           "path_to_sound.mp3")
+                                                                           "path_to_sound.mp3", new RGBColor())
                                                  },
                                                  5f,
                                                  2f));
@@ -259,10 +259,10 @@ public class MainContentManager : MonoBehaviour
                                                  new Threat.ThreatLock[] {
                                                      new Threat.ThreatLock("MA",
                                                                            new string[]{"path_to_symbol_MA.jpg"},
-                                                                           "path_to_sound2.mp3"),
+                                                                           "path_to_sound2.mp3", new RGBColor()),
                                                      new Threat.ThreatLock("ML",
                                                                            new string[]{"path_to_symbol_ML.jpg"},
-                                                                           "path_to_sound2.mp3")
+                                                                           "path_to_sound2.mp3", new RGBColor())
                                                  },
                                                  4.5f,
                                                  2.5f));
@@ -273,10 +273,10 @@ public class MainContentManager : MonoBehaviour
                                                  new Threat.ThreatLock[] {
                                                      new Threat.ThreatLock("MA",
                                                                            new string[]{"path_to_symbol_MA1.jpg"},
-                                                                           "path_to_sound2.mp3"),
+                                                                           "path_to_sound2.mp3", new RGBColor()),
                                                      new Threat.ThreatLock("ML",
                                                                            new string[]{"path_to_symbol_ML1.jpg"},
-                                                                           "path_to_sound2.mp3")
+                                                                           "path_to_sound2.mp3", new RGBColor())
                                                  },
                                                  5f,
                                                  2.5f));

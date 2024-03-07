@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using TMPro;
+using UnityEditor;
 
 public class EditorInputLine : EditorLine
 {
@@ -9,6 +10,7 @@ public class EditorInputLine : EditorLine
     public TMP_InputField inputField;
     private EditorInputList editorInputList;
     public GameObject deleteButton;
+    public GameObject browseButton;
 
     public void initEditorInputLine(string dataType, MainContentManager mainContentManager, float xOffset)
     {
@@ -56,6 +58,16 @@ public class EditorInputLine : EditorLine
     public override void reorderEditorElement()
     {
         this.GetComponent<RectTransform>().anchoredPosition = new Vector2(xOffset, baseHeight);
+    }
+
+    public void getLineValueFromBrowserPath()
+    {
+        inputField.text = EditorUtility.OpenFilePanel("Select File", "", "");
+    }
+
+    public void enableBrowseButton()
+    {
+        browseButton.SetActive(true);
     }
 
 }

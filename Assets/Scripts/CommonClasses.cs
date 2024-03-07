@@ -12,7 +12,9 @@ public class SimulatorDatabase
     public List<Scenario> scenarios;
     public List<Train> trains;
 
-    
+    public List<FloatHyperParameter> floatHyperParameters;
+
+    // ========================= Fucntions =========================
 
     public SimulatorElement getSimulatorElementByIndex(List<SimulatorElement> simulatorElements, int index)
     {
@@ -132,6 +134,14 @@ public abstract class SimulatorElement : SimulatorClass
 }
 
 [System.Serializable]
+public class RGBColor : SimulatorClass
+{
+    public float R;
+    public float G;
+    public float B;
+}
+
+[System.Serializable]
 public class SystemVersion : SimulatorElement
 {
     public int versionIndex;
@@ -172,12 +182,14 @@ public class Threat : SimulatorElement
         public string threatLockName;
         public string[] threatLockPathsToSymbols;
         public string threatLockPathToSound;
+        public RGBColor threatLockColor;
 
-        public ThreatLock(string threatLockName, string[] threatLockPathsToSymbols, string threatLockPathToSound)
+        public ThreatLock(string threatLockName, string[] threatLockPathsToSymbols, string threatLockPathToSound, RGBColor threatLockColor)
         {
             this.threatLockName = threatLockName;
             this.threatLockPathsToSymbols = threatLockPathsToSymbols;
             this.threatLockPathToSound = threatLockPathToSound;
+            this.threatLockColor = threatLockColor;
         }
 
         public ThreatLock()
@@ -185,13 +197,15 @@ public class Threat : SimulatorElement
             this.threatLockName = "";
             this.threatLockPathsToSymbols = new string[] { };
             this.threatLockPathToSound = "";
+            this.threatLockColor = new RGBColor();
         }
     }
 
     public int threatIndex;
     public string threatName;
-    public float timeBetweenSymbolChanging;
+    public float threatRadius;
     public ThreatLock[] threatLocks;
+    public float timeBetweenSymbolChanging;
     public float defaultUncertaintyRange;
     public float defaultUncertaintyTime;
 
@@ -231,7 +245,9 @@ public class MapCircle : SimulatorElement
     public int circleIndex;
     public string circleName;
     public float circleRadius;
+    
     public string circlePathToSymbol;
+    public RGBColor circleColor;
 
     public MapCircle(int circleIndex)
     {
@@ -326,7 +342,7 @@ public class Scenario : SimulatorElement
         [System.Serializable]
         public class UserResponeToThreat : SimulatorClass
         {
-            public int userResponeLinkIndex;
+            public int userResponeListIndex;
             public float responeToThreatScore;
             public string responseToThreatExplanation;
             public bool isOverridingEndOfScenarioEducationalScreen;
@@ -334,7 +350,7 @@ public class Scenario : SimulatorElement
 
             public UserResponeToThreat()
             {
-                userResponeLinkIndex = 0;
+                userResponeListIndex = 0;
                 responeToThreatScore = 0f;
                 responseToThreatExplanation = "";
                 isOverridingEndOfScenarioEducationalScreen = false;
@@ -345,21 +361,21 @@ public class Scenario : SimulatorElement
         [System.Serializable]
         public class ActiveThreatEvent : SimulatorClass
         {
-            public int threatLockLinkIndex;
+            public int threatLockListIndex;
             public float threatEventTime;
             public bool isPlayingThreatLockSound;
 
             public ActiveThreatEvent()
             {
-                threatLockLinkIndex = 0;
+                threatLockListIndex = 0;
                 threatEventTime = 0f;
                 isPlayingThreatLockSound = false;
             }
         }
 
-        public int activeThreatIndex;
+
+        public int activeThreatLinkIndex;
         public SteerPoint threatPosition;
-        public float threatApperanceTime;
         public ActiveThreatEvent[] activeThreatEvents;
         public float threatDifficultyFactor;
         public float minResponseTime;
@@ -368,9 +384,8 @@ public class Scenario : SimulatorElement
 
         public ActiveThreat()
         {
-            activeThreatIndex = 0;
+            activeThreatLinkIndex = 0;
             threatPosition = new SteerPoint();
-            threatApperanceTime = 0f;
             activeThreatEvents = new ActiveThreatEvent[] { };
             threatDifficultyFactor = 0f;
             minResponseTime = 0f;
@@ -379,14 +394,23 @@ public class Scenario : SimulatorElement
         }
     }
 
+    public class ActiveMapCircle : SimulatorClass
+    {
+        public int mapCircleIndexLinkIndex;
+        public SteerPoint mapCenterPosition;
+    }
+
     public int scenarioIndex;
     public string scenarioName;
     public SteerPoint[] airplaneSteerPoints;
     public float airplaneHeight;
     public float airplaneVelocity;
     public ActiveThreat[] activeThreats;
-    public int[] userResponsesIndexInScenario;
-    public bool hasEndOfScenarioEducationalScreen;
+    public ActiveMapCircle[] activeMapCircles;
+    public int[] userResponsesIndexesInScenario;
+
+    public bool enableEndOfScenarioEducationalScreen;
+    public bool hasDefaultEndOfScenarioEducationalScreen;
     public int endOfScenarioEducationalScreenLinkIndex;
 
     public override int getIndex()
@@ -406,8 +430,10 @@ public class Scenario : SimulatorElement
         airplaneHeight = 0f;
         airplaneVelocity = 0f;
         activeThreats = new ActiveThreat[] { };
-        userResponsesIndexInScenario = new int[] { };
-        hasEndOfScenarioEducationalScreen = false;
+        activeMapCircles = new ActiveMapCircle[] { };
+        userResponsesIndexesInScenario = new int[] { };
+        enableEndOfScenarioEducationalScreen = false;
+        hasDefaultEndOfScenarioEducationalScreen = false;
         endOfScenarioEducationalScreenLinkIndex = 0;
 
 
@@ -438,3 +464,18 @@ public class Train : SimulatorElement
         trainScenarioIndex = new int[] { };
     }
 }
+
+[System.Serializable]
+public class HyperParameter : SimulatorClass
+{
+    
+}
+
+[System.Serializable]
+public class FloatHyperParameter : HyperParameter
+{
+    public string parameterName;
+    public float parameterValue;
+}
+
+
