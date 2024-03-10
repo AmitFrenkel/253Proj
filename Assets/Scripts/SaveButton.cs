@@ -32,7 +32,7 @@ public class SaveButton : MonoBehaviour
     {
         if (isWaitingToSave)
         {
-            mainContentManager.saveElement();
+            mainContentManager.saveElementToOutputFile();
             setAsSaved();
         }
             

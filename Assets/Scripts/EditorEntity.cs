@@ -9,6 +9,7 @@ public class EditorEntity : EditorLine
 {
 
     private SimulatorClass linkedSimulatorClass;
+    private SimulatorClass linkedParentSimulatorClass;
     private List<EditorLine> editorLines;
     private float startHeight;
     private float loopHeight;
@@ -26,10 +27,11 @@ public class EditorEntity : EditorLine
     public GameObject editorInputListPrefab;
     public GameObject editorEntityListPrefab;
 
-    public void initEditorEntity(SimulatorClass SimulatorClass, MainContentManager mainContentManager, float xOffset, EditorEntitiesList editorEntitiesList)
+    public void initEditorEntity(SimulatorClass simulatorClass, SimulatorClass linkedParentSimulatorClass, MainContentManager mainContentManager, float xOffset, EditorEntitiesList editorEntitiesList)
     {
-        linkedSimulatorClass = SimulatorClass;
+        linkedSimulatorClass = simulatorClass;
         this.mainContentManager = mainContentManager;
+        this.linkedParentSimulatorClass = linkedParentSimulatorClass;
         this.xOffset = xOffset;
         editorLines = new List<EditorLine>();
         startHeight = 0f;
@@ -53,7 +55,7 @@ public class EditorEntity : EditorLine
             {
                 if (prop.GetValue(linkedSimulatorClass).GetType() == typeof(int))
                 {
-                    if (!prop.Name.ToLower().Contains("link"))
+                    if (!prop.Name.ToLower().Contains("link") & !prop.Name.ToLower().Contains("list"))
                     {
                         EditorInputLine newEditorInputLine = addEditorInputLine(prop.Name, prop.GetValue(linkedSimulatorClass).ToString(), "int");
                         if (prop.Name.ToLower().Contains("index"))
@@ -61,10 +63,42 @@ public class EditorEntity : EditorLine
                     }
                     else
                     {
-                        MainContentManager.SimulatorTypes simulatorType = MainContentManager.SimulatorTypes.EducationalScreen;
-                        if (prop.Name.ToLower().Contains("threat"))
-                            simulatorType = MainContentManager.SimulatorTypes.EducationalScreen;
-                        EditorInputDropDown newEditorDropdown = addEditorInputDropDown(prop.Name, simulatorType, Convert.ToInt32(prop.GetValue(linkedSimulatorClass)));
+                        if (prop.Name.ToLower().Contains("link"))
+                        {
+                            MainContentManager.SimulatorTypes simulatorType = MainContentManager.SimulatorTypes.EducationalScreen;
+                            if (prop.Name.ToLower().Contains("educational"))
+                                simulatorType = MainContentManager.SimulatorTypes.EducationalScreen;
+                            else if (prop.Name.ToLower().Contains("threat"))
+                                simulatorType = MainContentManager.SimulatorTypes.Threat;
+                            else if (prop.Name.ToLower().Contains("response"))
+                                simulatorType = MainContentManager.SimulatorTypes.UserResponse;
+                            else if (prop.Name.ToLower().Contains("circle"))
+                                simulatorType = MainContentManager.SimulatorTypes.MapCircle;
+                            EditorInputDropDown newEditorDropdown = addEditorInputDropDown(prop.Name, simulatorType, Convert.ToInt32(prop.GetValue(linkedSimulatorClass)));
+                        }
+                        else
+                        {
+                            if (prop.Name == "threatLockListIndex")
+                            {
+                                int linkedThreatIndex = (linkedParentSimulatorClass as Scenario.ActiveThreat).activeThreatLinkIndex;
+                                Threat threat = mainContentManager.getSimulatorDatabase().getThreatByIndex(linkedThreatIndex);
+                                Threat.ThreatLock[] threatLocks = threat.threatLocks;
+                                string[] threatLockNames = new string[threatLocks.Length];
+                                for (int i = 0; i < threatLockNames.Length; i++)
+                                    threatLockNames[i] = threatLocks[i].threatLockName;
+                                EditorInputDropDown newEditorDropdown = addEditorInputDropDown(prop.Name, threatLockNames);
+                            }
+                            else if (prop.Name == "userResponeListIndex")
+                            {
+                                Scenario parentScenario = mainContentManager.getPresentedSimilatorElement() as Scenario;
+                                int[] includedUserResponsesIndexes = parentScenario.includedUserResponsesIndexes;
+                                string[] userResponsesIndexesStr = new string[includedUserResponsesIndexes.Length];
+                                for (int i = 0; i < userResponsesIndexesStr.Length; i++)
+                                    userResponsesIndexesStr[i] = i.ToString();
+                                EditorInputDropDown newEditorDropdown = addEditorInputDropDown(prop.Name, userResponsesIndexesStr);
+                            }
+                        }
+                        
                     }
                 }
                 else if (prop.GetValue(linkedSimulatorClass).GetType() == typeof(string))
@@ -88,6 +122,7 @@ public class EditorEntity : EditorLine
                                 simulatorType = MainContentManager.SimulatorTypes.Scenario;
                             else if (prop.Name.ToLower().Contains("response"))
                                 simulatorType = MainContentManager.SimulatorTypes.UserResponse;
+
                             int[] arr = prop.GetValue(linkedSimulatorClass) as int[];
                             addEditorIndexInputDropdownList(prop.Name, simulatorType, arr);
                         }
@@ -128,6 +163,8 @@ public class EditorEntity : EditorLine
         newEditorInputLine.GetComponent<EditorInputLine>().initEditorInputLine(dataType, mainContentManager, (isEditorEntityPartOfAList ? -UIViewConfigurations.listHeaderWidth : 0f));
         newEditorInputLine.GetComponent<EditorInputLine>().setDisplayName(name);
         newEditorInputLine.GetComponent<EditorInputLine>().setValue(value);
+        if (name.ToLower().Contains("path"))
+            newEditorInputLine.GetComponent<EditorInputLine>().enableBrowseButton();
         editorLines.Add(newEditorInputLine.GetComponent<EditorLine>());
         loopHeight -= editorLineHeight;
         return newEditorInputLine.GetComponent<EditorInputLine>();
@@ -137,8 +174,20 @@ public class EditorEntity : EditorLine
     {
         GameObject newEditorDropDown = Instantiate(editorDropdownPrefab) as GameObject;
         newEditorDropDown.transform.parent = this.transform;
-        newEditorDropDown.GetComponent<EditorInputDropDown>().initEditorIndputDropDown(listSimulatorType, selectedIndex, mainContentManager, (isEditorEntityPartOfAList ? -UIViewConfigurations.listHeaderWidth : 0f));
-        newEditorDropDown.GetComponent<EditorInputDropDown>().setDisplayName((editorLines.Count + 1).ToString());
+        newEditorDropDown.GetComponent<EditorInputDropDown>().initEditorIndputDropDown(mainContentManager, (isEditorEntityPartOfAList ? -UIViewConfigurations.listHeaderWidth : 0f));
+        newEditorDropDown.GetComponent<EditorInputDropDown>().buildEditorIndputDropDownBySimulatorCategory(listSimulatorType, selectedIndex);
+        newEditorDropDown.GetComponent<EditorInputDropDown>().setDisplayName(name);
+        editorLines.Add(newEditorDropDown.GetComponent<EditorLine>());
+        return newEditorDropDown.GetComponent<EditorInputDropDown>();
+    }
+
+    private EditorInputDropDown addEditorInputDropDown(string name, string[] sourceList)
+    {
+        GameObject newEditorDropDown = Instantiate(editorDropdownPrefab) as GameObject;
+        newEditorDropDown.transform.parent = this.transform;
+        newEditorDropDown.GetComponent<EditorInputDropDown>().initEditorIndputDropDown(mainContentManager, (isEditorEntityPartOfAList ? -UIViewConfigurations.listHeaderWidth : 0f));
+        newEditorDropDown.GetComponent<EditorInputDropDown>().buildEditorIndputDropDownBySimulatorClassElementList(sourceList);
+        newEditorDropDown.GetComponent<EditorInputDropDown>().setDisplayName(name);
         editorLines.Add(newEditorDropDown.GetComponent<EditorLine>());
         return newEditorDropDown.GetComponent<EditorInputDropDown>();
     }
@@ -159,7 +208,7 @@ public class EditorEntity : EditorLine
     {
         GameObject newEditorEntitiesList = Instantiate(editorEntityListPrefab) as GameObject;
         newEditorEntitiesList.transform.parent = this.transform;
-        newEditorEntitiesList.GetComponent<EditorEntitiesList>().initEditorEntitiesList(new SimulatorClass[] { SimulatorClasss } , elementsType, mainContentManager, (isEditorEntityPartOfAList ? -UIViewConfigurations.listHeaderWidth : 0f), true);
+        newEditorEntitiesList.GetComponent<EditorEntitiesList>().initEditorEntitiesList(new SimulatorClass[] { SimulatorClasss } , linkedSimulatorClass, elementsType, mainContentManager, (isEditorEntityPartOfAList ? -UIViewConfigurations.listHeaderWidth : 0f), true);
         newEditorEntitiesList.GetComponent<EditorEntitiesList>().setDisplayName(name);
         editorLines.Add(newEditorEntitiesList.GetComponent<EditorLine>());
         return newEditorEntitiesList.GetComponent<EditorEntitiesList>();
@@ -169,7 +218,7 @@ public class EditorEntity : EditorLine
     {
         GameObject newEditorEntitiesList = Instantiate(editorEntityListPrefab) as GameObject;
         newEditorEntitiesList.transform.parent = this.transform;
-        newEditorEntitiesList.GetComponent<EditorEntitiesList>().initEditorEntitiesList(SimulatorClasss, elementsType, mainContentManager, (isEditorEntityPartOfAList ? -UIViewConfigurations.listHeaderWidth : 0f), false);
+        newEditorEntitiesList.GetComponent<EditorEntitiesList>().initEditorEntitiesList(SimulatorClasss, linkedSimulatorClass, elementsType, mainContentManager, (isEditorEntityPartOfAList ? -UIViewConfigurations.listHeaderWidth : 0f), false);
         newEditorEntitiesList.GetComponent<EditorEntitiesList>().setDisplayName(name);
         editorLines.Add(newEditorEntitiesList.GetComponent<EditorLine>());
         return newEditorEntitiesList.GetComponent<EditorEntitiesList>();
@@ -181,6 +230,8 @@ public class EditorEntity : EditorLine
         newEditorInputList.transform.parent = this.transform;
         newEditorInputList.GetComponent<EditorInputList>().initEditorInputList(dataType, mainContentManager, (isEditorEntityPartOfAList ? -UIViewConfigurations.listHeaderWidth : 0f));
         newEditorInputList.GetComponent<EditorInputList>().setDisplayName(name);
+        if (name.ToLower().Contains("path"))
+            newEditorInputList.GetComponent<EditorInputList>().enableBrowseButtonsInListItems();
         for (int i=0; i<values.Length; i++)
         {
             newEditorInputList.GetComponent<EditorInputList>().addEditorInputLineToList(values[i]);
@@ -218,7 +269,7 @@ public class EditorEntity : EditorLine
                 {
                     if (prop.GetValue(linkedSimulatorClass).GetType() == typeof(int))
                     {
-                        if (!prop.Name.ToLower().Contains("link"))
+                        if (!prop.Name.ToLower().Contains("link") & !prop.Name.ToLower().Contains("list"))
                             prop.SetValue(linkedSimulatorClass, Convert.ToInt32((editorLine as EditorInputLine).getValue()));
                         else
                             prop.SetValue(linkedSimulatorClass, Convert.ToInt32((editorLine as EditorInputDropDown).getValue()));
@@ -237,6 +288,7 @@ public class EditorEntity : EditorLine
                         {
                             case "Threat+ThreatLock": prop.SetValue(linkedSimulatorClass, resultSimulatorClass as Threat.ThreatLock); break;
                             case "Scenario+SteerPoint": prop.SetValue(linkedSimulatorClass, resultSimulatorClass as Scenario.SteerPoint); break;
+                            case "RGBColor": prop.SetValue(linkedSimulatorClass, resultSimulatorClass as RGBColor); break;
                             default: Debug.Log("Add new type to switch case : " + (editorLine as EditorEntitiesList).getSimulatorClassElementsTypeToString()); break;
                         }
                     }
@@ -269,9 +321,11 @@ public class EditorEntity : EditorLine
                             switch ((editorLine as EditorEntitiesList).getSimulatorClassElementsTypeToString())
                             {
                                 case "Threat+ThreatLock": prop.SetValue(linkedSimulatorClass, Array.ConvertAll(resultArr, item => (Threat.ThreatLock)item)); break;
-                                case "Scenraio+SteerPoint": prop.SetValue(linkedSimulatorClass, Array.ConvertAll(resultArr, item => (Scenario.SteerPoint)item)); break;
+                                case "Scenario+SteerPoint": prop.SetValue(linkedSimulatorClass, Array.ConvertAll(resultArr, item => (Scenario.SteerPoint)item)); break;
+                                case "Scenario+ActiveThreat": prop.SetValue(linkedSimulatorClass, Array.ConvertAll(resultArr, item => (Scenario.ActiveThreat)item)); break;
                                 case "Scenario+ActiveThreat+ActiveThreatEvent": prop.SetValue(linkedSimulatorClass, Array.ConvertAll(resultArr, item => (Scenario.ActiveThreat.ActiveThreatEvent)item)); break;
                                 case "Scenario+ActiveThreat+UserResponeToThreat": prop.SetValue(linkedSimulatorClass, Array.ConvertAll(resultArr, item => (Scenario.ActiveThreat.UserResponeToThreat)item)); break;
+                                case "Scenario+ActiveMapCircle": prop.SetValue(linkedSimulatorClass, Array.ConvertAll(resultArr, item => (Scenario.ActiveMapCircle)item)); break;
                                 default: Debug.Log("Add new type to switch case : " + (editorLine as EditorEntitiesList).getSimulatorClassElementsTypeToString()); break;
                             }  
                         }
@@ -318,5 +372,23 @@ public class EditorEntity : EditorLine
     public SimulatorClass getLinkedSimulatorClass()
     {
         return linkedSimulatorClass;
+    }
+
+    private Scenario.ActiveThreat getHolderActiveTreat(Scenario.ActiveThreat.ActiveThreatEvent searchActiveTreatEvent)
+    {
+        foreach (Scenario scenario in mainContentManager.getSimulatorDatabase().scenarios)
+        {
+            foreach (Scenario.ActiveThreat activeThreat in scenario.activeThreats)
+            {
+                foreach (Scenario.ActiveThreat.ActiveThreatEvent activeThreatEvent in activeThreat.activeThreatEvents)
+                {
+                    if (activeThreatEvent == searchActiveTreatEvent)
+                    {
+                        return activeThreat;
+                    }
+                }
+            }
+        }
+        return null;
     }
 }

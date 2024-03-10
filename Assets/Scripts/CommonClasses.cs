@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 
+
 [System.Serializable]
 public class SimulatorDatabase
 {
@@ -139,6 +140,20 @@ public class RGBColor : SimulatorClass
     public float R;
     public float G;
     public float B;
+
+    public RGBColor()
+    {
+        R = 0f;
+        G = 0f;
+        B = 0f;
+    }
+
+    public RGBColor(float r, float g, float b)
+    {
+        R = r;
+        G = g;
+        B = b;
+    }
 }
 
 [System.Serializable]
@@ -257,6 +272,14 @@ public class MapCircle : SimulatorElement
         this.circlePathToSymbol = "";
     }
 
+    public MapCircle(int circleIndex, string circleName, float circleRadius, string circlePathToSymbol, RGBColor circleColor) : this(circleIndex)
+    {
+        this.circleName = circleName;
+        this.circleRadius = circleRadius;
+        this.circlePathToSymbol = circlePathToSymbol;
+        this.circleColor = circleColor;
+    }
+
     public override int getIndex()
     {
         return circleIndex;
@@ -289,6 +312,13 @@ public class UserResponse : SimulatorElement
         responseName = "";
         isResponseCausesToEndOfScenario = false;
     }
+
+    public UserResponse(int responseIndex, string responseName, bool isResponseCausesToEndOfScenario)
+    {
+        this.responseIndex = responseIndex;
+        this.responseName = responseName;
+        this.isResponseCausesToEndOfScenario = isResponseCausesToEndOfScenario;
+    }
 }
 
 [System.Serializable]
@@ -318,10 +348,18 @@ public class EducationalScreen : SimulatorElement
         educationalScreenText = "";
 
     }
+
+    public EducationalScreen(int educationalScreenIndex, string educationalScreenName, bool isEducationalScreenBasedOnImage, string educationalScreenPathToImage, string educationalScreenText) : this(educationalScreenIndex)
+    {
+        this.educationalScreenName = educationalScreenName;
+        this.isEducationalScreenBasedOnImage = isEducationalScreenBasedOnImage;
+        this.educationalScreenPathToImage = educationalScreenPathToImage;
+        this.educationalScreenText = educationalScreenText;
+    }
 }
 
 [System.Serializable]
-public class Scenario : SimulatorElement
+public partial class Scenario : SimulatorElement
 {
     [System.Serializable]
     public class SteerPoint : SimulatorClass
@@ -334,29 +372,17 @@ public class Scenario : SimulatorElement
             this.N = "";
             this.E = "";
         }
+
+        public SteerPoint(string n, string e)
+        {
+            N = n;
+            E = e;
+        }
     }
 
     [System.Serializable]
-    public class ActiveThreat : SimulatorClass
+    public partial class ActiveThreat : SimulatorClass
     {
-        [System.Serializable]
-        public class UserResponeToThreat : SimulatorClass
-        {
-            public int userResponeListIndex;
-            public float responeToThreatScore;
-            public string responseToThreatExplanation;
-            public bool isOverridingEndOfScenarioEducationalScreen;
-            public int overrideEducationalScreenLinkIndex;
-
-            public UserResponeToThreat()
-            {
-                userResponeListIndex = 0;
-                responeToThreatScore = 0f;
-                responseToThreatExplanation = "";
-                isOverridingEndOfScenarioEducationalScreen = false;
-                overrideEducationalScreenLinkIndex = 0;
-            }
-        }
 
         [System.Serializable]
         public class ActiveThreatEvent : SimulatorClass
@@ -370,6 +396,13 @@ public class Scenario : SimulatorElement
                 threatLockListIndex = 0;
                 threatEventTime = 0f;
                 isPlayingThreatLockSound = false;
+            }
+
+            public ActiveThreatEvent(int threatLockListIndex, float threatEventTime, bool isPlayingThreatLockSound)
+            {
+                this.threatLockListIndex = threatLockListIndex;
+                this.threatEventTime = threatEventTime;
+                this.isPlayingThreatLockSound = isPlayingThreatLockSound;
             }
         }
 
@@ -392,12 +425,37 @@ public class Scenario : SimulatorElement
             maxReasonableResponeTime = 0f;
             userResponesToThreats = new UserResponeToThreat[] { };
         }
+
+        public ActiveThreat(int activeThreatLinkIndex, SteerPoint threatPosition, ActiveThreatEvent[] activeThreatEvents, float threatDifficultyFactor, float minResponseTime, float maxReasonableResponeTime, UserResponeToThreat[] userResponesToThreats)
+        {
+            this.activeThreatLinkIndex = activeThreatLinkIndex;
+            this.threatPosition = threatPosition;
+            this.activeThreatEvents = activeThreatEvents;
+            this.threatDifficultyFactor = threatDifficultyFactor;
+            this.minResponseTime = minResponseTime;
+            this.maxReasonableResponeTime = maxReasonableResponeTime;
+            this.userResponesToThreats = userResponesToThreats;
+        }
     }
 
+    [System.Serializable]
     public class ActiveMapCircle : SimulatorClass
     {
         public int mapCircleIndexLinkIndex;
         public SteerPoint mapCenterPosition;
+
+
+        public ActiveMapCircle()
+        {
+            mapCircleIndexLinkIndex = 0;
+            mapCenterPosition = new SteerPoint();
+        }
+
+        public ActiveMapCircle(int mapCircleIndexLinkIndex, SteerPoint mapCenterPosition)
+        {
+            this.mapCircleIndexLinkIndex = mapCircleIndexLinkIndex;
+            this.mapCenterPosition = mapCenterPosition;
+        }
     }
 
     public int scenarioIndex;
@@ -407,8 +465,7 @@ public class Scenario : SimulatorElement
     public float airplaneVelocity;
     public ActiveThreat[] activeThreats;
     public ActiveMapCircle[] activeMapCircles;
-    public int[] userResponsesIndexesInScenario;
-
+    public int[] includedUserResponsesIndexes;
     public bool enableEndOfScenarioEducationalScreen;
     public bool hasDefaultEndOfScenarioEducationalScreen;
     public int endOfScenarioEducationalScreenLinkIndex;
@@ -431,14 +488,25 @@ public class Scenario : SimulatorElement
         airplaneVelocity = 0f;
         activeThreats = new ActiveThreat[] { };
         activeMapCircles = new ActiveMapCircle[] { };
-        userResponsesIndexesInScenario = new int[] { };
+        includedUserResponsesIndexes = new int[] { };
         enableEndOfScenarioEducationalScreen = false;
         hasDefaultEndOfScenarioEducationalScreen = false;
         endOfScenarioEducationalScreenLinkIndex = 0;
-
-
     }
 
+    public Scenario(int scenarioIndex, string scenarioName, SteerPoint[] airplaneSteerPoints, float airplaneHeight, float airplaneVelocity, ActiveThreat[] activeThreats, ActiveMapCircle[] activeMapCircles, int[] includedUserResponsesIndexes, bool enableEndOfScenarioEducationalScreen, bool hasDefaultEndOfScenarioEducationalScreen, int endOfScenarioEducationalScreenLinkIndex) : this(scenarioIndex)
+    {
+        this.scenarioName = scenarioName;
+        this.airplaneSteerPoints = airplaneSteerPoints;
+        this.airplaneHeight = airplaneHeight;
+        this.airplaneVelocity = airplaneVelocity;
+        this.activeThreats = activeThreats;
+        this.activeMapCircles = activeMapCircles;
+        this.includedUserResponsesIndexes = includedUserResponsesIndexes;
+        this.enableEndOfScenarioEducationalScreen = enableEndOfScenarioEducationalScreen;
+        this.hasDefaultEndOfScenarioEducationalScreen = hasDefaultEndOfScenarioEducationalScreen;
+        this.endOfScenarioEducationalScreenLinkIndex = endOfScenarioEducationalScreenLinkIndex;
+    }
 }
 
 [System.Serializable]
@@ -468,14 +536,89 @@ public class Train : SimulatorElement
 [System.Serializable]
 public class HyperParameter : SimulatorClass
 {
-    
+    public string parameterName;
 }
 
 [System.Serializable]
 public class FloatHyperParameter : HyperParameter
 {
-    public string parameterName;
+    
     public float parameterValue;
+}
+
+// ==================== Editor default values =====================
+
+[System.Serializable]
+public class EditorDatabase
+{
+    public List<FloatEditorDefualtValue> floatEditorDefaultValue;
+    public List<StringEditorDefualtValue> stringEditorDefaultValue;
+    public List<BoolEditorDefualtValue> boolEditorDefaultValue;
+
+    public bool isDefaultValueExist(string searchValueName)
+    {
+        foreach (FloatEditorDefualtValue loopDefaultValue in floatEditorDefaultValue)
+            if (loopDefaultValue.fieldName == searchValueName)
+                return true;
+
+        foreach (StringEditorDefualtValue loopDefaultValue in stringEditorDefaultValue)
+            if (loopDefaultValue.fieldName == searchValueName)
+                return true;
+
+        foreach (BoolEditorDefualtValue loopDefaultValue in boolEditorDefaultValue)
+            if (loopDefaultValue.fieldName == searchValueName)
+                return true;
+
+        return false;
+    }
+
+    public float getFloatDefaultValue(string searchValueName)
+    {
+        foreach (FloatEditorDefualtValue loopDefaultValue in floatEditorDefaultValue)
+            if (loopDefaultValue.fieldName == searchValueName)
+                return loopDefaultValue.fieldValue;
+        return -1f;
+    }
+
+    public string getStringDefaultValue(string searchValueName)
+    {
+        foreach (StringEditorDefualtValue loopDefaultValue in stringEditorDefaultValue)
+            if (loopDefaultValue.fieldName == searchValueName)
+                return loopDefaultValue.fieldValue;
+        return "";
+    }
+
+    public bool getBoolDefaultValue(string searchValueName)
+    {
+        foreach (BoolEditorDefualtValue loopDefaultValue in boolEditorDefaultValue)
+            if (loopDefaultValue.fieldName == searchValueName)
+                return loopDefaultValue.fieldValue;
+        return false;
+    }
+}
+
+[System.Serializable]
+public class EditorDefualtValue
+{
+    public string fieldName;
+}
+
+[System.Serializable]
+public class FloatEditorDefualtValue : EditorDefualtValue
+{
+    public float fieldValue;
+}
+
+[System.Serializable]
+public class StringEditorDefualtValue : EditorDefualtValue
+{
+    public string fieldValue;
+}
+
+[System.Serializable]
+public class BoolEditorDefualtValue : EditorDefualtValue
+{
+    public bool fieldValue;
 }
 
 

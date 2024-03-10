@@ -15,6 +15,7 @@ public class EditorInputList : EditorLine
     public RectTransform addButton;
     public RectTransform listHeader;
     MainContentManager.SimulatorTypes listSimulatorType;
+    private bool browseButtonEnabledInItems;
 
 
     public void initEditorInputList(string dataType, MainContentManager mainContentManager, float xOffset)
@@ -25,6 +26,7 @@ public class EditorInputList : EditorLine
         //totalHeight = 0f;
         listDataType = dataType;
         isListOfDropdownIndexes = false;
+        browseButtonEnabledInItems = false;
     }
 
     public void setAsListOfDropdownIndices(MainContentManager.SimulatorTypes listSimulatorType)
@@ -46,6 +48,8 @@ public class EditorInputList : EditorLine
         newEditorInputLine.GetComponent<EditorInputLine>().setDisplayName(defaultElementName);
         newEditorInputLine.GetComponent<EditorInputLine>().setValue(value);
         newEditorInputLine.GetComponent<EditorInputLine>().assignToEditorInputList(this);
+        if (browseButtonEnabledInItems)
+            newEditorInputLine.GetComponent<EditorInputLine>().enableBrowseButton();
         editorLines.Add(newEditorInputLine.GetComponent<EditorLine>());
     }
 
@@ -53,7 +57,8 @@ public class EditorInputList : EditorLine
     {
         GameObject newEditorDropDown = Instantiate(editorDropdownPrefab) as GameObject;
         newEditorDropDown.transform.parent = this.transform;
-        newEditorDropDown.GetComponent<EditorInputDropDown>().initEditorIndputDropDown(listSimulatorType, selectedIndex, mainContentManager, 0f);
+        newEditorDropDown.GetComponent<EditorInputDropDown>().initEditorIndputDropDown(mainContentManager, 0f);
+        newEditorDropDown.GetComponent<EditorInputDropDown>().buildEditorIndputDropDownBySimulatorCategory(listSimulatorType, selectedIndex);
         newEditorDropDown.GetComponent<EditorInputDropDown>().setDisplayName((editorLines.Count+1).ToString());
         newEditorDropDown.GetComponent<EditorInputDropDown>().assignToEditorInputList(this);
         editorLines.Add(newEditorDropDown.GetComponent<EditorLine>());
@@ -61,22 +66,25 @@ public class EditorInputList : EditorLine
 
     public void addElement()
     {
+        mainContentManager.startEditorBuild();
         if (isListOfDropdownIndexes)
             addEditorInputDropdownToList(0);
         else
             addEditorInputLineToList("");
         reorderLinesInList();
-        reportEditorLineModified();
+        mainContentManager.endEditorBuildAndSave();
         reportEditorLineChangedHeight();
     }
 
     public void deleteElementInList(EditorLine editorLineToDelete)
     {
+        mainContentManager.startEditorBuild();
         editorLines.Remove(editorLineToDelete);
         Destroy(editorLineToDelete.gameObject);
         reorderLinesInList();
-        reportEditorLineModified();
+        mainContentManager.endEditorBuildAndSave();
         reportEditorLineChangedHeight();
+
     }
 
     public override void reorderEditorElement()
@@ -113,6 +121,11 @@ public class EditorInputList : EditorLine
     public EditorLine getEditorLineInIndex(int index)
     {
         return editorLines[index];
+    }
+
+    public void enableBrowseButtonsInListItems()
+    {
+        browseButtonEnabledInItems = true;
     }
 
     public string getValueInLineIndex(int lineIndex)

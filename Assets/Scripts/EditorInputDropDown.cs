@@ -23,13 +23,17 @@ public class EditorInputDropDown : EditorLine
         }
     }
 
-    public void initEditorIndputDropDown(MainContentManager.SimulatorTypes simulatorCategory, int selectedValue, MainContentManager mainContentManager, float xOffset)
+    public void initEditorIndputDropDown(MainContentManager mainContentManager, float xOffset)
     {
         this.mainContentManager = mainContentManager;
         editorElementHeight = -UIViewConfigurations.dataLineHeight;
-        indexAndNames = new List<IndexAndName>();
         this.xOffset = xOffset;
-        dropDownField.options = new List<TMP_Dropdown.OptionData>();
+        indexAndNames = new List<IndexAndName>();
+        dropDownField.options = new List<TMP_Dropdown.OptionData>();  
+    }
+
+    public void buildEditorIndputDropDownBySimulatorCategory(MainContentManager.SimulatorTypes simulatorCategory, int selectedValue)
+    {
         SimulatorDatabase simulatorDatabase = mainContentManager.getSimulatorDatabase();
         List<SimulatorElement> simulatorElements = null;
         switch (simulatorCategory)
@@ -46,7 +50,7 @@ public class EditorInputDropDown : EditorLine
 
         List<int> existIndices = simulatorDatabase.getListOfExistIndices(simulatorElements);
         int selectedDropDownValue = -1;
-        for (int i=0; i<existIndices.Count; i++)
+        for (int i = 0; i < existIndices.Count; i++)
         {
             int existIndex = existIndices[i];
             string elementName = simulatorDatabase.getSimulatorElementByIndex(simulatorElements, existIndex).getName();
@@ -57,10 +61,17 @@ public class EditorInputDropDown : EditorLine
         }
         if (selectedDropDownValue != -1)
             dropDownField.value = selectedDropDownValue;
-        else
-            Debug.Log("could not find selected row in dropdown!");
-        
+    }
 
+    public void buildEditorIndputDropDownBySimulatorClassElementList(string[] sourceList)
+    {
+        for (int i = 0; i < sourceList.Length; i++)
+        {
+            indexAndNames.Add(new IndexAndName(i, sourceList[i]));
+            dropDownField.options.Add(new TMP_Dropdown.OptionData(sourceList[i]));
+        }
+        if (sourceList.Length > 0)
+            dropDownField.value = 0;
     }
 
     public void setDisplayName(string name)
@@ -70,7 +81,9 @@ public class EditorInputDropDown : EditorLine
 
     public string getValue()
     {
-        return indexAndNames[dropDownField.value].index.ToString();
+        if (indexAndNames.Count > 0)
+            return indexAndNames[dropDownField.value].index.ToString();
+        return "-1";
     }
 
     public void assignToEditorInputList(EditorInputList newList)

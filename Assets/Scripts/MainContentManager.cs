@@ -17,7 +17,12 @@ public class MainContentManager : MonoBehaviour
     private int presentedElementIndex;
     public GameObject saveButton;
     public GameObject deleteButton;
+    public GameObject mapEditButton;
     public GameObject addNewElementButton;
+    private bool isEditorDuringBuild;
+    //private bool isMapEditEnabled;
+    public MapView mapView;
+    private bool isEditingScenarioInMapView;
 
     public enum SimulatorTypes { SystemVersion, Threat, MapCircle, UserResponse, EducationalScreen, Scenario, Train };
 
@@ -27,11 +32,12 @@ public class MainContentManager : MonoBehaviour
         SimulatorDatabase simulatorDatabaseBeforeSerialization = getDemoSimulatorData();
         presentedEditorEntity = null;
         saveButton.GetComponent<SaveButton>().initSaveButton();
-        saveButton.SetActive(false);
+        //saveButton.SetActive(false);
         deleteButton.SetActive(false);
         string json = JsonUtility.ToJson(simulatorDatabaseBeforeSerialization);
         //Debug.Log(json);
         simulatorDatabase = JsonUtility.FromJson<SimulatorDatabase>(json);
+        isEditingScenarioInMapView = false;
     }
 
     public void menuButtonSelected(UIMenuButton selectedButton)
@@ -64,6 +70,7 @@ public class MainContentManager : MonoBehaviour
     {
         // Debug.Log("Cat: " + category + " Load element idx = " + elementIndex);
         clearLoadedElement();
+        hideMapViewEdit();
         presentedElementIndex = elementIndex;
         SimulatorElement selectedSimulatorElement = null;
         switch (category)
@@ -79,13 +86,17 @@ public class MainContentManager : MonoBehaviour
         presentedSimulatorElement = selectedSimulatorElement;
         GameObject editorEntity = Instantiate(editorEntityPrefab) as GameObject;
         editorEntity.transform.parent = dataMainVerticalPanel.contectHolder.transform;
-        editorEntity.GetComponent<EditorEntity>().initEditorEntity(selectedSimulatorElement, this, -10f, null);
+        startEditorBuild();
+        editorEntity.GetComponent<EditorEntity>().initEditorEntity(selectedSimulatorElement, null, this, -10f, null);
+        endEditorBuild();
         editorEntity.GetComponent<EditorEntity>().setBaseHeight(-10f);
         editorEntity.GetComponent<EditorEntity>().reorderEditorElement();
         presentedEditorEntity = editorEntity;
-        saveButton.SetActive(true);
-        saveButton.GetComponent<SaveButton>().setAsSaved();
+        //saveButton.SetActive(true);
+        //saveButton.GetComponent<SaveButton>().setAsSaved();
         deleteButton.SetActive(true);
+        if (category == "Scenario")
+            mapEditButton.SetActive(true);
     }
 
     public void addNewElement()
@@ -134,13 +145,16 @@ public class MainContentManager : MonoBehaviour
         }
         elementsMainPanel.addUIMenuButton(presentedCategory, "<Unnamed>", nextIndex, true);
         elementsMainPanel.reorderUIMenuButtons();
+        startEditorBuild();
         loadElement(presentedCategory, nextIndex);
+        endEditorBuildAndSave();
     }
 
-    public void saveElement()
+    public void saveElementToOutputFile()
     {
-        presentedEditorEntity.GetComponent<EditorEntity>().saveElement();
-        elementsMainPanel.editButtonName(presentedElementIndex, presentedSimulatorElement.getName());
+        saveChangesFromEditorToDatabase();
+        Debug.Log("Saved to output file... (TODO)");
+        saveButton.GetComponent<SaveButton>().setAsSaved();
     }
 
     public void clearLoadedElement()
@@ -151,8 +165,9 @@ public class MainContentManager : MonoBehaviour
         presentedSimulatorElement = null;
         categoriesMainPanel.collapsePanel();
         elementsMainPanel.expandPanel();
-        saveButton.SetActive(false);
+        //saveButton.SetActive(false);
         deleteButton.SetActive(false);
+        mapEditButton.SetActive(false);
     }
 
     public void deleteElement()
@@ -173,13 +188,71 @@ public class MainContentManager : MonoBehaviour
 
     public void setEditorLineModified()
     {
+        if (!isEditorDuringBuild)
+        {
+            saveButton.GetComponent<SaveButton>().setAsNeedToSave();
+            saveChangesFromEditorToDatabase();
+        }
+    }
+
+    public void setMapViewModified()
+    {
         saveButton.GetComponent<SaveButton>().setAsNeedToSave();
+        mapView.saveChangesFromMapViewToDatabase();
+    }
+
+    public void saveChangesFromEditorToDatabase()
+    {
+        if (presentedEditorEntity != null & !isEditorDuringBuild)
+        {
+            presentedEditorEntity.GetComponent<EditorEntity>().saveElement();
+            elementsMainPanel.editButtonName(presentedElementIndex, presentedSimulatorElement.getName());
+        }
     }
 
     public void setEditorLineChangedHeight()
     {
         if (presentedEditorEntity != null)
             presentedEditorEntity.GetComponent<EditorEntity>().reorderEditorElement();
+    }
+
+    public void startEditorBuild()
+    {
+        isEditorDuringBuild = true;
+    }
+
+    public void endEditorBuild()
+    {
+        isEditorDuringBuild = false;
+    }
+
+    public void endEditorBuildAndSave()
+    {
+        isEditorDuringBuild = false;
+        saveChangesFromEditorToDatabase();
+    }
+
+    public void toggleEditScenarioOverMap()
+    {
+        if (isEditingScenarioInMapView)
+            hideMapViewEdit();
+        else
+            loadMapViewEdit();
+    }
+
+    private void hideMapViewEdit()
+    {
+        isEditingScenarioInMapView = false;
+        mapView.gameObject.SetActive(false);
+        dataMainVerticalPanel.contectHolder.gameObject.SetActive(true);
+    }
+
+    private void loadMapViewEdit()
+    {
+        isEditingScenarioInMapView = true;
+        mapView.gameObject.SetActive(true);
+        dataMainVerticalPanel.contectHolder.gameObject.SetActive(false);
+        mapView.initMapViewByScenario(presentedSimulatorElement as Scenario);
     }
 
     private List<SimulatorElement> getListOfSimulatorElementsFromCategory(SimulatorDatabase simulatorDatabase, string categoryName)
@@ -232,6 +305,11 @@ public class MainContentManager : MonoBehaviour
         return simulatorDatabase;
     }
 
+    public SimulatorElement getPresentedSimilatorElement()
+    {
+        return presentedSimulatorElement;
+    }
+
     public SimulatorDatabase getDemoSimulatorData()
     {
         SimulatorDatabase simulatorDatabase = new SimulatorDatabase();
@@ -246,7 +324,7 @@ public class MainContentManager : MonoBehaviour
                                                  "Tr0",
                                                  0.5f,
                                                  new Threat.ThreatLock[] {
-                                                     new Threat.ThreatLock("MA",
+                                                     new Threat.ThreatLock("MA0",
                                                                            new string[]{"path_to_symbol.jpg"},
                                                                            "path_to_sound.mp3", new RGBColor())
                                                  },
@@ -257,10 +335,10 @@ public class MainContentManager : MonoBehaviour
                                                  "Tr1",
                                                  0.2f,
                                                  new Threat.ThreatLock[] {
-                                                     new Threat.ThreatLock("MA",
+                                                     new Threat.ThreatLock("MA1",
                                                                            new string[]{"path_to_symbol_MA.jpg"},
                                                                            "path_to_sound2.mp3", new RGBColor()),
-                                                     new Threat.ThreatLock("ML",
+                                                     new Threat.ThreatLock("ML1",
                                                                            new string[]{"path_to_symbol_ML.jpg"},
                                                                            "path_to_sound2.mp3", new RGBColor())
                                                  },
@@ -268,24 +346,56 @@ public class MainContentManager : MonoBehaviour
                                                  2.5f));
 
         simulatorDatabase.threats.Add(new Threat(2,
-                                                 "Tr1 Improved",
+                                                 "Tr2",
                                                  0.8f,
                                                  new Threat.ThreatLock[] {
-                                                     new Threat.ThreatLock("MA",
+                                                     new Threat.ThreatLock("MA2",
                                                                            new string[]{"path_to_symbol_MA1.jpg"},
                                                                            "path_to_sound2.mp3", new RGBColor()),
-                                                     new Threat.ThreatLock("ML",
+                                                     new Threat.ThreatLock("ML2",
                                                                            new string[]{"path_to_symbol_ML1.jpg"},
                                                                            "path_to_sound2.mp3", new RGBColor())
                                                  },
                                                  5f,
                                                  2.5f));
 
+        simulatorDatabase.mapCircles = new List<MapCircle>();
+        simulatorDatabase.mapCircles.Add(new MapCircle(0,
+                                                       "SAx",
+                                                       6.5f,
+                                                       "path_to_symbol_SAx.jpg",
+                                                       new RGBColor(0.8f, 0.1f, 0.3f)));
+
         simulatorDatabase.userResponses = new List<UserResponse>();
+        simulatorDatabase.userResponses.Add(new UserResponse(0, "Left", true));
+        simulatorDatabase.userResponses.Add(new UserResponse(1, "Right", true));
+        simulatorDatabase.userResponses.Add(new UserResponse(2, "Keep going", false));
 
         simulatorDatabase.educationalScreens = new List<EducationalScreen>();
 
         simulatorDatabase.scenarios = new List<Scenario>();
+        simulatorDatabase.scenarios.Add(new Scenario(0,
+                                                     "Scenario0",
+                                                     new Scenario.SteerPoint[] { new Scenario.SteerPoint("3320.000", "3520.000"),
+                                                                                 new Scenario.SteerPoint("3328.000", "3523.000"),
+                                                                                 new Scenario.SteerPoint("3330.000", "3530.000"),
+                                                                                 new Scenario.SteerPoint("3325.000", "3531.000")
+                                                     },
+                                                     31000f,
+                                                     600f,
+                                                     new Scenario.ActiveThreat[] { new Scenario.ActiveThreat(1,
+                                                                                                             new Scenario.SteerPoint("3105.000", "3355.000"),
+                                                                                                             new Scenario.ActiveThreat.ActiveThreatEvent[] { new Scenario.ActiveThreat.ActiveThreatEvent(0, 20f, false),
+                                                                                                                                                             new Scenario.ActiveThreat.ActiveThreatEvent(0, 20f, false)},
+                                                                                                             0.5f,
+                                                                                                             2f,
+                                                                                                             7f,
+                                                                                                             new Scenario.ActiveThreat.UserResponeToThreat[] {new Scenario.ActiveThreat.UserResponeToThreat(0, 100f, "", false, -1)})
+                                                                                 },
+                                                     new Scenario.ActiveMapCircle[] { new Scenario.ActiveMapCircle(0, new Scenario.SteerPoint("3115.000", "3405.000"))},
+                                                     new int[] { 0, 1, 2},
+                                                     false, false, 0
+                                                     ));
 
         simulatorDatabase.trains = new List<Train>();
 
