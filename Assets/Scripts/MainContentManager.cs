@@ -38,6 +38,7 @@ public class MainContentManager : MonoBehaviour
         //Debug.Log(json);
         simulatorDatabase = JsonUtility.FromJson<SimulatorDatabase>(json);
         isEditingScenarioInMapView = false;
+        mapView.initMapViewByScenario(simulatorDatabase.scenarios[0], this);
     }
 
     public void menuButtonSelected(UIMenuButton selectedButton)
@@ -252,7 +253,7 @@ public class MainContentManager : MonoBehaviour
         isEditingScenarioInMapView = true;
         mapView.gameObject.SetActive(true);
         dataMainVerticalPanel.contectHolder.gameObject.SetActive(false);
-        mapView.initMapViewByScenario(presentedSimulatorElement as Scenario);
+        mapView.initMapViewByScenario(presentedSimulatorElement as Scenario, this);
     }
 
     private List<SimulatorElement> getListOfSimulatorElementsFromCategory(SimulatorDatabase simulatorDatabase, string categoryName)
@@ -377,16 +378,20 @@ public class MainContentManager : MonoBehaviour
         simulatorDatabase.scenarios.Add(new Scenario(0,
                                                      "Scenario0",
                                                      new Scenario.SteerPoint[] { new Scenario.SteerPoint("3320.000", "3520.000"),
-                                                                                 new Scenario.SteerPoint("3328.000", "3523.000"),
-                                                                                 new Scenario.SteerPoint("3330.000", "3530.000"),
-                                                                                 new Scenario.SteerPoint("3325.000", "3531.000")
+                                                                                 new Scenario.SteerPoint("3338.000", "3523.000"),
+                                                                                 new Scenario.SteerPoint("3340.000", "3540.000"),
+                                                                                 new Scenario.SteerPoint("3325.000", "3541.000")
+                                                     //new Scenario.SteerPoint[] { new Scenario.SteerPoint("3400.000", "3500.000"),
+                                                     //                            new Scenario.SteerPoint("3430.000", "3500.000"),
+                                                     //                            new Scenario.SteerPoint("3430.000", "3530.000"),
+                                                     //                            new Scenario.SteerPoint("3400.000", "3530.000")
                                                      },
                                                      31000f,
                                                      600f,
                                                      new Scenario.ActiveThreat[] { new Scenario.ActiveThreat(1,
                                                                                                              new Scenario.SteerPoint("3105.000", "3355.000"),
-                                                                                                             new Scenario.ActiveThreat.ActiveThreatEvent[] { new Scenario.ActiveThreat.ActiveThreatEvent(0, 20f, false),
-                                                                                                                                                             new Scenario.ActiveThreat.ActiveThreatEvent(0, 20f, false)},
+                                                                                                             new Scenario.ActiveThreat.ActiveThreatEvent[] { new Scenario.ActiveThreat.ActiveThreatEvent(0, 120f, false),
+                                                                                                                                                             new Scenario.ActiveThreat.ActiveThreatEvent(1, 230f, false)},
                                                                                                              0.5f,
                                                                                                              2f,
                                                                                                              7f,
