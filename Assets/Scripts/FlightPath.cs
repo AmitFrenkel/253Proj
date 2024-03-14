@@ -10,6 +10,7 @@ public class FlightPath
         public Vector2 endPos;
         public float startNavTime;
         public float milesPerLengthUnit;
+        public float startDist;
         public float length;
 
         public virtual void calculateLength()
@@ -25,6 +26,11 @@ public class FlightPath
         public virtual Vector2 getPosInLocalDist(float dist)
         {
             return Vector2.zero;
+        }
+
+        public virtual float getDistOfClosestPointOnPath(Vector2 searchPoint)
+        {
+            return -1f;
         }
     }
 
@@ -43,6 +49,25 @@ public class FlightPath
         public override Vector2 getPosInLocalDist(float dist)
         {
             return startPos + (endPos - startPos).normalized * (dist / milesPerLengthUnit);
+        }
+
+        public override float getDistOfClosestPointOnPath(Vector2 searchPoint)
+        {
+            Vector2 u = startPos - searchPoint;
+            Vector2 v = endPos - startPos;
+            float t = -Vector2.Dot(v, u) / Vector2.Dot(v, v);
+            if (t >= 0f & t <= 1f)
+            {
+                return startDist + t * length;
+            }
+                
+            else
+            {
+                if (Vector2.SqrMagnitude(startPos - searchPoint) < Vector2.SqrMagnitude(endPos - searchPoint))
+                    return startDist;
+                else
+                    return startDist + length;
+            }
         }
     }
 
@@ -66,6 +91,30 @@ public class FlightPath
         {
             float angle = (dist / milesPerLengthUnit) / turnRadius;
             return centerOfTurn + rotate((startPos - centerOfTurn), angle * Mathf.Sign(turnAngle * -1f));
+        }
+
+        public override float getDistOfClosestPointOnPath(Vector2 searchPoint)
+        {
+            Vector2 generalClosestPointOfCircle = centerOfTurn + (searchPoint - centerOfTurn).normalized * turnRadius;
+            float distToStartPos = Vector2.SqrMagnitude(searchPoint - startPos);
+            float distToEndPos = Vector2.SqrMagnitude(searchPoint - endPos);
+            float distToClosestPoint = Vector2.SqrMagnitude(searchPoint - generalClosestPointOfCircle);
+
+            float minDist = Mathf.Min(distToStartPos, distToEndPos, distToClosestPoint);
+            if (minDist == distToStartPos)
+                return startDist;
+            else if (minDist == distToEndPos)
+                return (startDist + length);
+            else
+            {
+                // calculate angle
+                Vector2 centerToStart = (startPos - centerOfTurn);
+                Vector2 centerToClosest = (generalClosestPointOfCircle - centerOfTurn);
+                float angle = Mathf.Acos(Vector2.Dot(centerToStart, centerToClosest) * Mathf.Sign(turnAngle) /  (turnRadius * turnRadius));
+                if (angle > 0f & angle < Mathf.Abs(turnAngle))
+                    return startDist + (angle / Mathf.Abs(turnAngle)) * length;
+                return startDist;
+            }            
         }
     }
 
@@ -100,12 +149,14 @@ public class FlightPath
         StrightNavSection newStrightNavSection = new StrightNavSection(milesPerLengthUnit);
         newStrightNavSection.startPos = airplaneSteerPoints[0].GetComponent<RectTransform>().anchoredPosition;
         newStrightNavSection.endPos = airplaneSteerPoints[1].GetComponent<RectTransform>().anchoredPosition;
+        newStrightNavSection.startDist = 0f;
         newStrightNavSection.calculateLength();
         navSections.Add(newStrightNavSection);
 
         for (int stpIndx = 1; stpIndx < airplaneSteerPoints.Count - 1; stpIndx++)
         {
             TurnNavSection newTurnNavSection = new TurnNavSection(milesPerLengthUnit);
+            newTurnNavSection.startDist = navSections[navSections.Count - 1].startDist + navSections[navSections.Count - 1].getLength();
             newTurnNavSection.startPos = navSections[navSections.Count - 1].endPos;
             Vector2 srcPos = navSections[navSections.Count - 1].startPos;
             Vector2 turnPos = navSections[navSections.Count - 1].endPos;
@@ -121,6 +172,7 @@ public class FlightPath
             navSections.Add(newTurnNavSection);
 
             newStrightNavSection = new StrightNavSection(milesPerLengthUnit);
+            newStrightNavSection.startDist = navSections[navSections.Count - 1].startDist + navSections[navSections.Count - 1].getLength();
             newStrightNavSection.startPos = newTurnNavSection.endPos;
             newStrightNavSection.endPos = dstPos;
             newStrightNavSection.calculateLength();
@@ -157,8 +209,27 @@ public class FlightPath
                 loopDist += navSection.getLength();
             }
         }
-        Debug.Log("getPos out of range!");
+        if (dist <= 0f)
+            return navSections[0].startPos;
         return navSections[navSections.Count - 1].endPos;
+    }
+
+    public float getDistOfClosestPointOnPath(Vector2 searchPoint)
+    {
+        float distOnPath = Mathf.Infinity;
+        float minDistSearchToPath = Mathf.Infinity;
+
+        foreach (NavSection navSection in navSections)
+        {
+            float distOnPathForNavSection = navSection.getDistOfClosestPointOnPath(searchPoint);
+            float minDistSearchToPathForNavSection = Vector2.SqrMagnitude(getPosInMilesDist(distOnPathForNavSection) - searchPoint);
+            if (minDistSearchToPathForNavSection < minDistSearchToPath)
+            {
+                minDistSearchToPath = minDistSearchToPathForNavSection;
+                distOnPath = distOnPathForNavSection;
+            }
+        }
+        return distOnPath;
     }
 
     // =================== Support functions ===================
