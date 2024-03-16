@@ -388,20 +388,20 @@ public partial class Scenario : SimulatorElement
         public class ActiveThreatEvent : SimulatorClass
         {
             public int threatLockListIndex;
-            public float threatEventTime;
+            public float threatEventDistance;
             public bool isPlayingThreatLockSound;
 
             public ActiveThreatEvent()
             {
                 threatLockListIndex = 0;
-                threatEventTime = 0f;
+                threatEventDistance = 0f;
                 isPlayingThreatLockSound = false;
             }
 
-            public ActiveThreatEvent(int threatLockListIndex, float threatEventTime, bool isPlayingThreatLockSound)
+            public ActiveThreatEvent(int threatLockListIndex, float threatEventDistance, bool isPlayingThreatLockSound)
             {
                 this.threatLockListIndex = threatLockListIndex;
-                this.threatEventTime = threatEventTime;
+                this.threatEventDistance = threatEventDistance;
                 this.isPlayingThreatLockSound = isPlayingThreatLockSound;
             }
         }
@@ -461,6 +461,7 @@ public partial class Scenario : SimulatorElement
     public int scenarioIndex;
     public string scenarioName;
     public SteerPoint[] airplaneSteerPoints;
+    public int airPlaneSteerPointOfRelease;
     public float airplaneHeight;
     public float airplaneVelocity;
     public ActiveThreat[] activeThreats;
@@ -484,6 +485,7 @@ public partial class Scenario : SimulatorElement
         scenarioIndex = index;
         scenarioName = "";
         airplaneSteerPoints = new SteerPoint[] { };
+        airPlaneSteerPointOfRelease = 1;
         airplaneHeight = 0f;
         airplaneVelocity = 0f;
         activeThreats = new ActiveThreat[] { };

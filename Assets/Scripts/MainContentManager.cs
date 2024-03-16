@@ -390,14 +390,14 @@ public class MainContentManager : MonoBehaviour
                                                      600f,
                                                      new Scenario.ActiveThreat[] { new Scenario.ActiveThreat(1,
                                                                                                              new Scenario.SteerPoint("3105.000", "3355.000"),
-                                                                                                             new Scenario.ActiveThreat.ActiveThreatEvent[] { new Scenario.ActiveThreat.ActiveThreatEvent(0, 120f, false),
-                                                                                                                                                             new Scenario.ActiveThreat.ActiveThreatEvent(1, 230f, false)},
+                                                                                                             new Scenario.ActiveThreat.ActiveThreatEvent[] { new Scenario.ActiveThreat.ActiveThreatEvent(0, 5f, false),
+                                                                                                                                                             new Scenario.ActiveThreat.ActiveThreatEvent(1, 15f, false)},
                                                                                                              0.5f,
                                                                                                              2f,
                                                                                                              7f,
                                                                                                              new Scenario.ActiveThreat.UserResponeToThreat[] {new Scenario.ActiveThreat.UserResponeToThreat(0, 100f, "", false, -1)})
                                                                                  },
-                                                     new Scenario.ActiveMapCircle[] { new Scenario.ActiveMapCircle(0, new Scenario.SteerPoint("3115.000", "3405.000"))},
+                                                     new Scenario.ActiveMapCircle[] { new Scenario.ActiveMapCircle(0, new Scenario.SteerPoint("3345.000", "3540.000"))},
                                                      new int[] { 0, 1, 2},
                                                      false, false, 0
                                                      ));

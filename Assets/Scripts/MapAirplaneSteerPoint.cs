@@ -4,18 +4,33 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
-public class MapAirplaneSteerPoint : MonoBehaviour, IDragHandler, IBeginDragHandler, IEndDragHandler
+public class MapAirplaneSteerPoint : MonoBehaviour, IDragHandler, IBeginDragHandler, IEndDragHandler, IPointerClickHandler
 {
     private MapView mapView;
+    private Scenario.SteerPoint steerPoint;
     public GameObject connectorLine;
-    public Image thisImage; 
+    private int steerPointIndex;
 
-    public void initMapAirplaneSteerPoint(MapView mapView)
+    public GameObject floatingMenuSteerPointPrefab;
+    private GameObject activeFloatingMenu;
+
+    private bool isDragging;
+
+    public void initMapAirplaneSteerPoint(MapView mapView, Scenario.SteerPoint steerPoint, int steerPointIndex)
     {
         this.mapView = mapView;
+        this.steerPoint = steerPoint;
+        this.steerPointIndex = steerPointIndex;
+        activeFloatingMenu = null;
+        isDragging = false;
     }
 
-    public void makeALine(Transform newTrans)
+    public void setSteerPointIndex(int steerPointIndex)
+    {
+        this.steerPointIndex = steerPointIndex;
+    }
+
+    public void makeNavLine(Transform newTrans)
     {
         connectorLine.SetActive(true);
         //connectorLine.transform.LookAt(newTrans);
@@ -27,9 +42,15 @@ public class MapAirplaneSteerPoint : MonoBehaviour, IDragHandler, IBeginDragHand
         connectorLine.transform.localScale = new Vector3(dist / 100f, 1f, 1f);
     }
 
+    public void hideNavLine()
+    {
+        connectorLine.SetActive(false);
+    }
+
     public void OnBeginDrag(PointerEventData eventData)
     {
-        //thisImage.raycastTarget = false;
+        isDragging = true;
+        mapView.closeFloatingMenu();
     }
 
     public void OnDrag(PointerEventData eventData)
@@ -40,12 +61,48 @@ public class MapAirplaneSteerPoint : MonoBehaviour, IDragHandler, IBeginDragHand
 
     public void OnEndDrag(PointerEventData eventData)
     {
-        //thisImage.raycastTarget = true;
+        isDragging = false;
         mapView.airplaneSteerPointEndDrag();
+        mapView.closeFloatingMenu();
     }
 
     public float getZRotation()
     {
         return connectorLine.transform.eulerAngles.z;
+    }
+
+    public void OnPointerClick(PointerEventData eventData)
+    {
+        if (!isDragging)
+            addFloatingMenuSteerPoint(mapView.getMapAnchoredPosition(eventData.position));
+    }
+
+    public int getSteerPointIndex()
+    {
+        return steerPointIndex;
+    }
+
+    public Scenario.SteerPoint getSteerPointObject()
+    {
+        return steerPoint;
+    }
+
+    private void addFloatingMenuSteerPoint(Vector2 mapPosition)
+    {
+        mapView.closeAllFloatingMenus();
+        GameObject floatingMenu = Instantiate(floatingMenuSteerPointPrefab) as GameObject;
+        floatingMenu.transform.parent = mapView.transform;
+        floatingMenu.GetComponent<RectTransform>().anchoredPosition = mapPosition;
+        floatingMenu.GetComponent<FloatingMenuSteerPoint>().initFloatingMenuSteerPoint(mapView, this);
+        activeFloatingMenu = floatingMenu;
+    }
+
+    public void closeFloatingMenu()
+    {
+        if (activeFloatingMenu != null)
+        {
+            Destroy(activeFloatingMenu);
+            activeFloatingMenu = null;
+        }
     }
 }

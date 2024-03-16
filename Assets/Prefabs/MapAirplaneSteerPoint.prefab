@@ -62,6 +62,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   connectorLine: {fileID: 1693875579967659453}
   thisImage: {fileID: 3859254105406279811}
+  floatingMenuSteerPointPrefab: {fileID: 8435206423212794467, guid: 0eae1a4b67f1e47ddabeb31e62ffb062,
+    type: 3}
 --- !u!1 &1693875579967659453
 GameObject:
   m_ObjectHideFlags: 0

@@ -13,6 +13,7 @@ public class FlightPath
         public float startDist;
         public float length;
 
+
         public virtual void calculateLength()
         {
 
@@ -122,21 +123,17 @@ public class FlightPath
     private float milesPerLengthUnit;
     private float flightVelocity;
 
+    private const float milesStepForForwardCalculation = 0.1f;
+
+
     public FlightPath(float flightVelocity)
     {
         this.flightVelocity = flightVelocity;
     }
 
-    public void setMilesPerLengthUnit(string minStpt, string maxStpt, float mapSize)
+    public void buildNavSectionsByAirplaneNav(List<MapAirplaneSteerPoint> airplaneSteerPoints, float milesPerLengthUnit)
     {
-        
-        float minContinuesSteerPoint = MapView.ToContinousSteerPoint(minStpt);
-        float maxContinuesSteerPoint = MapView.ToContinousSteerPoint(maxStpt);
-        milesPerLengthUnit = (maxContinuesSteerPoint - minContinuesSteerPoint) * 60f / mapSize;
-    }
-
-    public void buildNavSectionsByAirplaneNav(List<GameObject> airplaneSteerPoints)
-    {
+        this.milesPerLengthUnit = milesPerLengthUnit;
         navSections = new List<NavSection>();
         float turnRadius = 15f;
 
@@ -147,8 +144,8 @@ public class FlightPath
         }
 
         StrightNavSection newStrightNavSection = new StrightNavSection(milesPerLengthUnit);
-        newStrightNavSection.startPos = airplaneSteerPoints[0].GetComponent<RectTransform>().anchoredPosition;
-        newStrightNavSection.endPos = airplaneSteerPoints[1].GetComponent<RectTransform>().anchoredPosition;
+        newStrightNavSection.startPos = airplaneSteerPoints[0].transform.GetComponent<RectTransform>().anchoredPosition;
+        newStrightNavSection.endPos = airplaneSteerPoints[1].transform.GetComponent<RectTransform>().anchoredPosition;
         newStrightNavSection.startDist = 0f;
         newStrightNavSection.calculateLength();
         navSections.Add(newStrightNavSection);
@@ -160,7 +157,7 @@ public class FlightPath
             newTurnNavSection.startPos = navSections[navSections.Count - 1].endPos;
             Vector2 srcPos = navSections[navSections.Count - 1].startPos;
             Vector2 turnPos = navSections[navSections.Count - 1].endPos;
-            Vector2 dstPos = airplaneSteerPoints[stpIndx + 1].GetComponent<RectTransform>().anchoredPosition;
+            Vector2 dstPos = airplaneSteerPoints[stpIndx + 1].transform.GetComponent<RectTransform>().anchoredPosition;
             float turnAngle = getTurnAngleBetweenSteerPoints(srcPos, turnPos, dstPos, turnRadius);
             newTurnNavSection.turnAngle = turnAngle;
             newTurnNavSection.turnRadius = turnRadius;
@@ -212,6 +209,50 @@ public class FlightPath
         if (dist <= 0f)
             return navSections[0].startPos;
         return navSections[navSections.Count - 1].endPos;
+    }
+
+    public Vector2[] getPosAndRightDirInMilesDist(float dist)
+    {
+        float loopDist = 0f;
+        foreach (NavSection navSection in navSections)
+        {
+            if (dist - loopDist < navSection.getLength())
+            {
+                Vector2 pos = navSection.getPosInLocalDist(dist - loopDist);
+                Vector2 forwardPos = pos;
+                if (dist - loopDist + milesStepForForwardCalculation < navSection.length)
+                {
+                    forwardPos = navSection.getPosInLocalDist(dist - loopDist + milesStepForForwardCalculation);
+                }
+                else
+                {
+                    Vector2 backwardPos = navSection.getPosInLocalDist(dist - loopDist - milesStepForForwardCalculation);
+                    forwardPos = 2 * pos - backwardPos;
+                }
+                Vector2 forwardDir = (pos - forwardPos).normalized;
+                Vector2 rightVector = rotate(forwardDir, Mathf.PI / 2f);
+                return new Vector2[] { pos, rightVector };
+            }
+            else
+            {
+                loopDist += navSection.getLength();
+            }
+        }
+        if (dist <= 0f)
+        {
+            Vector2 pos = navSections[0].getPosInLocalDist(0f);
+            Vector2 forwardPos = navSections[0].getPosInLocalDist(milesStepForForwardCalculation);
+            Vector2 forwardDir = (pos - forwardPos).normalized;
+            Vector2 rightVector = rotate(forwardDir, Mathf.PI / 2f);
+            return new Vector2[] { pos, rightVector };
+        }
+        else
+        {
+            Vector2 pos = navSections[navSections.Count - 1].endPos;
+            Vector2 forwardDir = (navSections[navSections.Count - 1].endPos - navSections[navSections.Count - 1].startPos).normalized;
+            Vector2 rightVector = rotate(forwardDir, Mathf.PI / 2f);
+            return new Vector2[] { pos, rightVector };
+        }
     }
 
     public float getDistOfClosestPointOnPath(Vector2 searchPoint)
@@ -266,10 +307,10 @@ public class FlightPath
             y = y2;
         else if (y1 > 0 & y2 < 0)
             y = y1;
-        else
-        {
-            Debug.Log("no positive and negative solutions!! why?" + ", y1 = " + y1 + ", y2 = " + y2);
-        }
+        //else
+        //{
+        //    Debug.Log("no positive and negative solutions!! why?" + ", y1 = " + y1 + ", y2 = " + y2);
+        //}
 
         // Find x
         float xSign = (rotatedTurnToDstP.y > turnRaduis) ? -1f : 1f;
