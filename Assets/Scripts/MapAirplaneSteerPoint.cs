@@ -6,7 +6,7 @@ using UnityEngine.UI;
 
 public class MapAirplaneSteerPoint : MonoBehaviour, IDragHandler, IBeginDragHandler, IEndDragHandler, IPointerClickHandler
 {
-    private MapView mapView;
+    private MapScenarioManager mapScenarioManager;
     private Scenario.SteerPoint steerPoint;
     public GameObject connectorLine;
     private int steerPointIndex;
@@ -16,13 +16,14 @@ public class MapAirplaneSteerPoint : MonoBehaviour, IDragHandler, IBeginDragHand
 
     private bool isDragging;
 
-    public void initMapAirplaneSteerPoint(MapView mapView, Scenario.SteerPoint steerPoint, int steerPointIndex)
+    public void initMapAirplaneSteerPoint(MapScenarioManager mapScenarioManager, Scenario.SteerPoint steerPoint, int steerPointIndex)
     {
-        this.mapView = mapView;
+        this.mapScenarioManager = mapScenarioManager;
         this.steerPoint = steerPoint;
         this.steerPointIndex = steerPointIndex;
         activeFloatingMenu = null;
         isDragging = false;
+        this.transform.GetComponent<RectTransform>().anchoredPosition = mapScenarioManager.mapView.FromScenarioSteerPointToAnchoredPosition(steerPoint);
     }
 
     public void setSteerPointIndex(int steerPointIndex)
@@ -50,20 +51,21 @@ public class MapAirplaneSteerPoint : MonoBehaviour, IDragHandler, IBeginDragHand
     public void OnBeginDrag(PointerEventData eventData)
     {
         isDragging = true;
-        mapView.closeFloatingMenu();
+        mapScenarioManager.closeFloatingMenu();
     }
 
     public void OnDrag(PointerEventData eventData)
     {
         this.transform.position = eventData.position;
-        mapView.airplaneSteerPointDragged();
+        mapScenarioManager.airplaneSteerPointDragged();
     }
 
     public void OnEndDrag(PointerEventData eventData)
     {
         isDragging = false;
-        mapView.airplaneSteerPointEndDrag();
-        mapView.closeFloatingMenu();
+        steerPoint = mapScenarioManager.mapView.FromAnchoredPositionToSteerPoint(this.transform.GetComponent<RectTransform>().anchoredPosition);
+        mapScenarioManager.airplaneSteerPointEndDrag(steerPointIndex, steerPoint);
+        mapScenarioManager.closeFloatingMenu();
     }
 
     public float getZRotation()
@@ -74,7 +76,7 @@ public class MapAirplaneSteerPoint : MonoBehaviour, IDragHandler, IBeginDragHand
     public void OnPointerClick(PointerEventData eventData)
     {
         if (!isDragging)
-            addFloatingMenuSteerPoint(mapView.getMapAnchoredPosition(eventData.position));
+            addFloatingMenuSteerPoint(mapScenarioManager.getMapAnchoredPosition(eventData.position));
     }
 
     public int getSteerPointIndex()
@@ -89,11 +91,11 @@ public class MapAirplaneSteerPoint : MonoBehaviour, IDragHandler, IBeginDragHand
 
     private void addFloatingMenuSteerPoint(Vector2 mapPosition)
     {
-        mapView.closeAllFloatingMenus();
+        mapScenarioManager.closeAllFloatingMenus();
         GameObject floatingMenu = Instantiate(floatingMenuSteerPointPrefab) as GameObject;
-        floatingMenu.transform.parent = mapView.transform;
+        floatingMenu.transform.parent = mapScenarioManager.transform;
         floatingMenu.GetComponent<RectTransform>().anchoredPosition = mapPosition;
-        floatingMenu.GetComponent<FloatingMenuSteerPoint>().initFloatingMenuSteerPoint(mapView, this);
+        floatingMenu.GetComponent<FloatingMenuSteerPoint>().initFloatingMenuSteerPoint(mapScenarioManager, this);
         activeFloatingMenu = floatingMenu;
     }
 

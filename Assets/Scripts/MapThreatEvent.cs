@@ -8,12 +8,12 @@ using TMPro;
 public class MapThreatEvent : MonoBehaviour, IDragHandler, IBeginDragHandler, IEndDragHandler
 {
     public TextMeshProUGUI desc;
-    private MapView mapView;
+    private MapScenarioManager mapScenarioManager;
     public Scenario.ActiveThreat.ActiveThreatEvent activeThreatEvent;
 
-    public void initMapThreatEvent(MapView mapView, Scenario.ActiveThreat.ActiveThreatEvent activeThreatEvent)
+    public void initMapThreatEvent(MapScenarioManager mapScenarioManager, Scenario.ActiveThreat.ActiveThreatEvent activeThreatEvent)
     {
-        this.mapView = mapView;
+        this.mapScenarioManager = mapScenarioManager;
         this.activeThreatEvent = activeThreatEvent;
     }
 
@@ -31,12 +31,12 @@ public class MapThreatEvent : MonoBehaviour, IDragHandler, IBeginDragHandler, IE
     {
         //this.transform.position = eventData.position;
         Vector2 dragPosition = new Vector2(eventData.position.x, eventData.position.y); // + dragOffset;
-        mapView.threatEventDragged(this, dragPosition);
+        mapScenarioManager.threatEventDragged(this, dragPosition);
     }
 
     public void OnEndDrag(PointerEventData eventData)
     {
         //thisImage.raycastTarget = true;
-        //mapView.airplaneSteerPointEndDrag();
+        //mapScenarioManager.airplaneSteerPointEndDrag();
     }
 }

@@ -228,18 +228,20 @@ public class Threat : SimulatorElement
     {
         this.threatIndex = threatIndex;
         this.threatName = "";
-        this.timeBetweenSymbolChanging = 0.5f;
+        this.threatRadius = 0;
         this.threatLocks = new ThreatLock[] { };
+        this.timeBetweenSymbolChanging = 0.5f;
         this.defaultUncertaintyRange = 0f;
         this.defaultUncertaintyTime = 0f;
     }
 
-    public Threat(int threatIndex, string threatName, float timeBetweenSymbolChanging, ThreatLock[] threatLocks, float defaultUncertaintyRange, float defaultUncertaintyTime)
+    public Threat(int threatIndex, string threatName, float threatRadius, ThreatLock[] threatLocks, float timeBetweenSymbolChanging, float defaultUncertaintyRange, float defaultUncertaintyTime)
     {
         this.threatIndex = threatIndex;
         this.threatName = threatName;
-        this.timeBetweenSymbolChanging = timeBetweenSymbolChanging;
+        this.threatRadius = threatRadius;
         this.threatLocks = threatLocks;
+        this.timeBetweenSymbolChanging = timeBetweenSymbolChanging;
         this.defaultUncertaintyRange = defaultUncertaintyRange;
         this.defaultUncertaintyTime = defaultUncertaintyTime;
     }

@@ -1190,7 +1190,7 @@ MonoBehaviour:
   m_OnValueChanged:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 4552622153162435041}
+      - m_Target: {fileID: 0}
         m_TargetAssemblyTypeName: FloatingMenuMapCircle, Assembly-CSharp
         m_MethodName: linkedMapCircleChanged
         m_Mode: 1
@@ -1525,7 +1525,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Map Circle
+  m_text: Active Threat
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -2062,7 +2062,7 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 4552622153162435041}
+      - m_Target: {fileID: 0}
         m_TargetAssemblyTypeName: FloatingMenuMapCircle, Assembly-CSharp
         m_MethodName: editMapCircle
         m_Mode: 1
@@ -2386,7 +2386,7 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 4552622153162435041}
+      - m_Target: {fileID: 0}
         m_TargetAssemblyTypeName: FloatingMenuMapCircle, Assembly-CSharp
         m_MethodName: duplicateMapCircle
         m_Mode: 1
@@ -2753,9 +2753,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 8435206423212794466}
-  - component: {fileID: 4552622153162435041}
+  - component: {fileID: 7794712636715619127}
   m_Layer: 5
-  m_Name: FloatingMenuMapCircle
+  m_Name: FloatingMenuActiveThreat
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -2785,7 +2785,7 @@ RectTransform:
   m_AnchoredPosition: {x: 248.50014, y: 629.7999}
   m_SizeDelta: {x: 100, y: 100}
   m_Pivot: {x: 0.0000000037252903, y: 0.99999964}
---- !u!114 &4552622153162435041
+--- !u!114 &7794712636715619127
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -2794,7 +2794,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 8435206423212794467}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 59a9489e6e4ff4f87b2225f9ee1a3cc1, type: 3}
+  m_Script: {fileID: 11500000, guid: 904bc80d9d591446b8adfc378f3c8031, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   header: {fileID: 0}
@@ -2923,7 +2923,7 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 4552622153162435041}
+      - m_Target: {fileID: 0}
         m_TargetAssemblyTypeName: FloatingMenuMapCircle, Assembly-CSharp
         m_MethodName: removeMapCircle
         m_Mode: 1

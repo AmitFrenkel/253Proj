@@ -21,8 +21,8 @@ public class MainContentManager : MonoBehaviour
     public GameObject addNewElementButton;
     private bool isEditorDuringBuild;
     //private bool isMapEditEnabled;
-    public MapView mapView;
-    private bool isEditingScenarioInMapView;
+    public MapScenarioManager mapScenarioManager;
+    private bool isEditingScenarioInMapScenarioManager;
 
     public enum SimulatorTypes { SystemVersion, Threat, MapCircle, UserResponse, EducationalScreen, Scenario, Train };
 
@@ -37,8 +37,8 @@ public class MainContentManager : MonoBehaviour
         string json = JsonUtility.ToJson(simulatorDatabaseBeforeSerialization);
         //Debug.Log(json);
         simulatorDatabase = JsonUtility.FromJson<SimulatorDatabase>(json);
-        isEditingScenarioInMapView = false;
-        mapView.initMapViewByScenario(simulatorDatabase.scenarios[0], this);
+        isEditingScenarioInMapScenarioManager = false;
+        mapScenarioManager.initMapScenarioManagerByScenario(simulatorDatabase.scenarios[0], this);
     }
 
     public void menuButtonSelected(UIMenuButton selectedButton)
@@ -71,7 +71,7 @@ public class MainContentManager : MonoBehaviour
     {
         // Debug.Log("Cat: " + category + " Load element idx = " + elementIndex);
         clearLoadedElement();
-        hideMapViewEdit();
+        hideMapScenarioManagerEdit();
         presentedElementIndex = elementIndex;
         SimulatorElement selectedSimulatorElement = null;
         switch (category)
@@ -196,10 +196,10 @@ public class MainContentManager : MonoBehaviour
         }
     }
 
-    public void setMapViewModified()
+    public void setMapScenarioManagerModified()
     {
         saveButton.GetComponent<SaveButton>().setAsNeedToSave();
-        mapView.saveChangesFromMapViewToDatabase();
+        mapScenarioManager.saveChangesFromMapScenarioManagerToDatabase();
     }
 
     public void saveChangesFromEditorToDatabase()
@@ -235,25 +235,25 @@ public class MainContentManager : MonoBehaviour
 
     public void toggleEditScenarioOverMap()
     {
-        if (isEditingScenarioInMapView)
-            hideMapViewEdit();
+        if (isEditingScenarioInMapScenarioManager)
+            hideMapScenarioManagerEdit();
         else
-            loadMapViewEdit();
+            loadMapScenarioManagerEdit();
     }
 
-    private void hideMapViewEdit()
+    private void hideMapScenarioManagerEdit()
     {
-        isEditingScenarioInMapView = false;
-        mapView.gameObject.SetActive(false);
+        isEditingScenarioInMapScenarioManager = false;
+        mapScenarioManager.gameObject.SetActive(false);
         dataMainVerticalPanel.contectHolder.gameObject.SetActive(true);
     }
 
-    private void loadMapViewEdit()
+    private void loadMapScenarioManagerEdit()
     {
-        isEditingScenarioInMapView = true;
-        mapView.gameObject.SetActive(true);
+        isEditingScenarioInMapScenarioManager = true;
+        mapScenarioManager.gameObject.SetActive(true);
         dataMainVerticalPanel.contectHolder.gameObject.SetActive(false);
-        mapView.initMapViewByScenario(presentedSimulatorElement as Scenario, this);
+        mapScenarioManager.initMapScenarioManagerByScenario(presentedSimulatorElement as Scenario, this);
     }
 
     private List<SimulatorElement> getListOfSimulatorElementsFromCategory(SimulatorDatabase simulatorDatabase, string categoryName)
@@ -323,18 +323,19 @@ public class MainContentManager : MonoBehaviour
         simulatorDatabase.threats = new List<Threat>();
         simulatorDatabase.threats.Add(new Threat(0,
                                                  "Tr0",
-                                                 0.5f,
+                                                 5f,
                                                  new Threat.ThreatLock[] {
                                                      new Threat.ThreatLock("MA0",
                                                                            new string[]{"path_to_symbol.jpg"},
                                                                            "path_to_sound.mp3", new RGBColor())
                                                  },
+                                                 0.5f,
                                                  5f,
                                                  2f));
 
         simulatorDatabase.threats.Add(new Threat(1,
                                                  "Tr1",
-                                                 0.2f,
+                                                 7f,
                                                  new Threat.ThreatLock[] {
                                                      new Threat.ThreatLock("MA1",
                                                                            new string[]{"path_to_symbol_MA.jpg"},
@@ -343,12 +344,13 @@ public class MainContentManager : MonoBehaviour
                                                                            new string[]{"path_to_symbol_ML.jpg"},
                                                                            "path_to_sound2.mp3", new RGBColor())
                                                  },
+                                                 0.2f,
                                                  4.5f,
                                                  2.5f));
 
         simulatorDatabase.threats.Add(new Threat(2,
                                                  "Tr2",
-                                                 0.8f,
+                                                 13f,
                                                  new Threat.ThreatLock[] {
                                                      new Threat.ThreatLock("MA2",
                                                                            new string[]{"path_to_symbol_MA1.jpg"},
@@ -357,6 +359,7 @@ public class MainContentManager : MonoBehaviour
                                                                            new string[]{"path_to_symbol_ML1.jpg"},
                                                                            "path_to_sound2.mp3", new RGBColor())
                                                  },
+                                                 0.8f,
                                                  5f,
                                                  2.5f));
 
@@ -366,6 +369,11 @@ public class MainContentManager : MonoBehaviour
                                                        6.5f,
                                                        "path_to_symbol_SAx.jpg",
                                                        new RGBColor(0.8f, 0.1f, 0.3f)));
+        simulatorDatabase.mapCircles.Add(new MapCircle(1,
+                                                       "SAy",
+                                                       15f,
+                                                       "path_to_symbol_SAy.jpg",
+                                                       new RGBColor(0.2f, 0.4f, 0.5f)));
 
         simulatorDatabase.userResponses = new List<UserResponse>();
         simulatorDatabase.userResponses.Add(new UserResponse(0, "Left", true));
@@ -381,15 +389,11 @@ public class MainContentManager : MonoBehaviour
                                                                                  new Scenario.SteerPoint("3338.000", "3523.000"),
                                                                                  new Scenario.SteerPoint("3340.000", "3540.000"),
                                                                                  new Scenario.SteerPoint("3325.000", "3541.000")
-                                                     //new Scenario.SteerPoint[] { new Scenario.SteerPoint("3400.000", "3500.000"),
-                                                     //                            new Scenario.SteerPoint("3430.000", "3500.000"),
-                                                     //                            new Scenario.SteerPoint("3430.000", "3530.000"),
-                                                     //                            new Scenario.SteerPoint("3400.000", "3530.000")
                                                      },
                                                      31000f,
                                                      600f,
                                                      new Scenario.ActiveThreat[] { new Scenario.ActiveThreat(1,
-                                                                                                             new Scenario.SteerPoint("3105.000", "3355.000"),
+                                                                                                             new Scenario.SteerPoint("3323.100", "3517.050"),
                                                                                                              new Scenario.ActiveThreat.ActiveThreatEvent[] { new Scenario.ActiveThreat.ActiveThreatEvent(0, 5f, false),
                                                                                                                                                              new Scenario.ActiveThreat.ActiveThreatEvent(1, 15f, false)},
                                                                                                              0.5f,

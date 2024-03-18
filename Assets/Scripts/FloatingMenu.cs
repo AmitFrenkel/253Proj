@@ -5,7 +5,7 @@ using TMPro;
 
 public class FloatingMenu : MonoBehaviour
 {
-    protected MapView mapView;
+    protected MapScenarioManager mapScenarioManager;
     public TextMeshProUGUI header;
 
     public void setHeaderText(string text)

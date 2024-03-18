@@ -8,7 +8,7 @@ using TMPro;
 public class MapActiveCircle : MonoBehaviour, IDragHandler, IBeginDragHandler, IEndDragHandler, IPointerClickHandler
 {
 
-    private MapView mapView;
+    private MapScenarioManager mapScenarioManager;
     private Scenario.ActiveMapCircle activeMapCircle;
 
     public GameObject outerCircle;
@@ -19,19 +19,18 @@ public class MapActiveCircle : MonoBehaviour, IDragHandler, IBeginDragHandler, I
 
     private bool isDragging;
 
-    public void initMapActiveCircle(MapView mapView, Scenario.ActiveMapCircle activeMapCircle)
+    public void initMapActiveCircle(MapScenarioManager mapScenarioManager, Scenario.ActiveMapCircle activeMapCircle)
     {
-        this.mapView = mapView;
+        this.mapScenarioManager = mapScenarioManager;
         this.activeMapCircle = activeMapCircle;
         activeFloatingMenu = null;
         isDragging = false;
 
-        Scenario.SteerPoint mapCircleSteerPoint = activeMapCircle.mapCenterPosition;
-        this.transform.GetComponent<RectTransform>().anchoredPosition = new Vector2(MapView.ToXmapPos(mapCircleSteerPoint.E), MapView.ToYmapPos(mapCircleSteerPoint.N));
+        this.transform.GetComponent<RectTransform>().anchoredPosition = mapScenarioManager.mapView.FromScenarioSteerPointToAnchoredPosition(activeMapCircle.mapCenterPosition);
 
-        MapCircle relatedMapCircle = mapView.getSimulatorDatabase().getMapCircleByIndex(activeMapCircle.mapCircleIndexLinkIndex);
+        MapCircle relatedMapCircle = mapScenarioManager.getSimulatorDatabase().getMapCircleByIndex(activeMapCircle.mapCircleIndexLinkIndex);
         activeCircleName.text = relatedMapCircle.circleName;
-        float outerCircleSize = 2f * relatedMapCircle.circleRadius / mapView.getMilesPerLengthUnit();
+        float outerCircleSize = 2f * relatedMapCircle.circleRadius / mapScenarioManager.mapView.getMilesPerLengthUnit();
         outerCircle.GetComponent<RectTransform>().sizeDelta = new Vector2(outerCircleSize, outerCircleSize);
 
 
@@ -40,7 +39,7 @@ public class MapActiveCircle : MonoBehaviour, IDragHandler, IBeginDragHandler, I
     public void OnBeginDrag(PointerEventData eventData)
     {
         isDragging = true;
-        closeFloatingMenu();
+        mapScenarioManager.closeAllFloatingMenus();
     }
 
     public void OnDrag(PointerEventData eventData)
@@ -51,23 +50,23 @@ public class MapActiveCircle : MonoBehaviour, IDragHandler, IBeginDragHandler, I
     public void OnEndDrag(PointerEventData eventData)
     {
         isDragging = false;
-        mapView.airplaneSteerPointEndDrag();
-        closeFloatingMenu();
+        mapScenarioManager.closeAllFloatingMenus();
+        activeMapCircle.mapCenterPosition = mapScenarioManager.mapView.FromAnchoredPositionToSteerPoint(this.transform.GetComponent<RectTransform>().anchoredPosition);
     }
 
     public void OnPointerClick(PointerEventData eventData)
     {
         if (!isDragging)
-            addFloatingMenuMapCircle(mapView.getMapAnchoredPosition(eventData.position));
+            addFloatingMenuMapCircle(mapScenarioManager.getMapAnchoredPosition(eventData.position));
     }
 
     private void addFloatingMenuMapCircle(Vector2 mapPosition)
     {
-        mapView.closeAllFloatingMenus();
+        mapScenarioManager.closeAllFloatingMenus();
         GameObject floatingMenu = Instantiate(floatingMenuActiveCirclePrefab) as GameObject;
-        floatingMenu.transform.parent = mapView.transform;
+        floatingMenu.transform.parent = mapScenarioManager.transform;
         floatingMenu.GetComponent<RectTransform>().anchoredPosition = mapPosition;
-        floatingMenu.GetComponent<FloatingMenuMapCircle>().initFloatingMenuMapCircle(mapView, this);
+        floatingMenu.GetComponent<FloatingMenuMapCircle>().initFloatingMenuMapCircle(mapScenarioManager, this);
         activeFloatingMenu = floatingMenu;
     }
 
@@ -78,6 +77,21 @@ public class MapActiveCircle : MonoBehaviour, IDragHandler, IBeginDragHandler, I
             Destroy(activeFloatingMenu);
             activeFloatingMenu = null;
         }
+    }
+
+    public Scenario.ActiveMapCircle getActiveMapCircleObject()
+    {
+        return activeMapCircle;
+    }
+
+    public void changeLinkedMapCircle(int newLinkIndex)
+    {
+        activeMapCircle.mapCircleIndexLinkIndex = newLinkIndex;
+
+        MapCircle relatedMapCircle = mapScenarioManager.getSimulatorDatabase().getMapCircleByIndex(activeMapCircle.mapCircleIndexLinkIndex);
+        activeCircleName.text = relatedMapCircle.circleName;
+        float outerCircleSize = 2f * relatedMapCircle.circleRadius / mapScenarioManager.mapView.getMilesPerLengthUnit();
+        outerCircle.GetComponent<RectTransform>().sizeDelta = new Vector2(outerCircleSize, outerCircleSize);
     }
 
 

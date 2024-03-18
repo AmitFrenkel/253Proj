@@ -15,14 +15,14 @@ public class MapThreatOverPath : MonoBehaviour, IPointerClickHandler
 
     private const float distSpaceBetweenMeshNodesInMiles = 0.5f;
 
-    public void initMesh(MapView mapView, Scenario.ActiveThreat activeThreat)
+    public void initMesh(MapScenarioManager mapScenarioManager, Scenario.ActiveThreat activeThreat)
     {
-        FlightPath flightPath = mapView.getFlightPath();
+        FlightPath flightPath = mapScenarioManager.getFlightPath();
         float firstDist = activeThreat.activeThreatEvents[0].threatEventDistance;
         float lastDist = activeThreat.activeThreatEvents[activeThreat.activeThreatEvents.Length-1].threatEventDistance;
         int nodes = Mathf.RoundToInt((lastDist - firstDist) / distSpaceBetweenMeshNodesInMiles);
         float distBetweenNodes = (lastDist - firstDist) / (nodes - 1);
-        float threatOverPathWidth = threatOverPathWidthMiles / mapView.getMilesPerLengthUnit();
+        float threatOverPathWidth = threatOverPathWidthMiles / mapScenarioManager.mapView.getMilesPerLengthUnit();
 
         Mesh mesh = new Mesh();
         newVertices = new Vector3[2* nodes];

@@ -10,9 +10,9 @@ public class FloatingMenuSteerPoint : FloatingMenu
     private MapAirplaneSteerPoint mapAirplaneSteerPoint;
     public Button makeReleaseSTPTButton;
 
-    public void initFloatingMenuSteerPoint(MapView mapView, MapAirplaneSteerPoint mapAirplaneSteerPoint)
+    public void initFloatingMenuSteerPoint(MapScenarioManager mapScenarioManager, MapAirplaneSteerPoint mapAirplaneSteerPoint)
     {
-        this.mapView = mapView;
+        this.mapScenarioManager = mapScenarioManager;
         this.mapAirplaneSteerPoint = mapAirplaneSteerPoint;
         if (mapAirplaneSteerPoint.getSteerPointIndex() == 0)
             makeReleaseSTPTButton.interactable = false;
@@ -20,25 +20,25 @@ public class FloatingMenuSteerPoint : FloatingMenu
 
     public void addSTPTbefore()
     {
-        mapView.addSteerPointBeforeIndex(mapAirplaneSteerPoint.getSteerPointIndex());
+        mapScenarioManager.addSteerPointBeforeIndex(mapAirplaneSteerPoint.getSteerPointIndex());
         mapAirplaneSteerPoint.closeFloatingMenu();
     }
 
     public void addSTPTafter()
     {
-        mapView.addSteerPointAfterIndex(mapAirplaneSteerPoint.getSteerPointIndex());
+        mapScenarioManager.addSteerPointAfterIndex(mapAirplaneSteerPoint.getSteerPointIndex());
         mapAirplaneSteerPoint.closeFloatingMenu();
     }
 
     public void removeSTPT()
     {
-        mapView.removeSteerPointInIndex(mapAirplaneSteerPoint.getSteerPointIndex());
+        mapScenarioManager.removeSteerPointInIndex(mapAirplaneSteerPoint.getSteerPointIndex());
         mapAirplaneSteerPoint.closeFloatingMenu();
     }
 
     public void setAsReleaseSTPT()
     {
-        mapView.setAsReleaseSteerPoint(mapAirplaneSteerPoint.getSteerPointIndex());
+        mapScenarioManager.setAsReleaseSteerPoint(mapAirplaneSteerPoint.getSteerPointIndex());
         mapAirplaneSteerPoint.closeFloatingMenu();
     }
 }

@@ -121,43 +121,41 @@ public class FlightPath
 
     private List<NavSection> navSections;
     private float milesPerLengthUnit;
-    private float flightVelocity;
-
     private const float milesStepForForwardCalculation = 0.1f;
+    private MapView mapView;
 
-
-    public FlightPath(float flightVelocity)
+    public FlightPath(MapView mapView)
     {
-        this.flightVelocity = flightVelocity;
+        this.mapView = mapView;
     }
 
-    public void buildNavSectionsByAirplaneNav(List<MapAirplaneSteerPoint> airplaneSteerPoints, float milesPerLengthUnit)
+    public void buildNavSectionsByAirplaneNav(Scenario.SteerPoint[] airplaneSteerPoints, float milesPerLengthUnit)
     {
         this.milesPerLengthUnit = milesPerLengthUnit;
         navSections = new List<NavSection>();
         float turnRadius = 15f;
 
-        if (airplaneSteerPoints.Count < 2)
+        if (airplaneSteerPoints.Length < 2)
         {
             Debug.Log("Airplane nav is less than 2 points, can't build nav sections!");
             return;
         }
 
         StrightNavSection newStrightNavSection = new StrightNavSection(milesPerLengthUnit);
-        newStrightNavSection.startPos = airplaneSteerPoints[0].transform.GetComponent<RectTransform>().anchoredPosition;
-        newStrightNavSection.endPos = airplaneSteerPoints[1].transform.GetComponent<RectTransform>().anchoredPosition;
+        newStrightNavSection.startPos = mapView.FromScenarioSteerPointToAnchoredPosition(airplaneSteerPoints[0]);
+        newStrightNavSection.endPos = mapView.FromScenarioSteerPointToAnchoredPosition(airplaneSteerPoints[1]);
         newStrightNavSection.startDist = 0f;
         newStrightNavSection.calculateLength();
         navSections.Add(newStrightNavSection);
 
-        for (int stpIndx = 1; stpIndx < airplaneSteerPoints.Count - 1; stpIndx++)
+        for (int stpIndx = 1; stpIndx < airplaneSteerPoints.Length - 1; stpIndx++)
         {
             TurnNavSection newTurnNavSection = new TurnNavSection(milesPerLengthUnit);
             newTurnNavSection.startDist = navSections[navSections.Count - 1].startDist + navSections[navSections.Count - 1].getLength();
             newTurnNavSection.startPos = navSections[navSections.Count - 1].endPos;
             Vector2 srcPos = navSections[navSections.Count - 1].startPos;
             Vector2 turnPos = navSections[navSections.Count - 1].endPos;
-            Vector2 dstPos = airplaneSteerPoints[stpIndx + 1].transform.GetComponent<RectTransform>().anchoredPosition;
+            Vector2 dstPos = mapView.FromScenarioSteerPointToAnchoredPosition(airplaneSteerPoints[stpIndx + 1]);
             float turnAngle = getTurnAngleBetweenSteerPoints(srcPos, turnPos, dstPos, turnRadius);
             newTurnNavSection.turnAngle = turnAngle;
             newTurnNavSection.turnRadius = turnRadius;
@@ -284,7 +282,6 @@ public class FlightPath
         Vector2 turnP = new Vector2(-turnRaduis, 0f);
         float alignAlpha = Mathf.Atan2(originalTurnP.x - originalSrcP.x, originalTurnP.y - originalSrcP.y);
         Vector2 originalTurnToDstP = originalDestP - originalTurnP;
-        //Vector2 rotatedTurnToDstP = new Vector2(originalTurnToDstP.x * Mathf.Cos(alignAlpha) - originalTurnToDstP.y * Mathf.Sin(alignAlpha), originalTurnToDstP.x * Mathf.Sin(alignAlpha) + originalTurnToDstP.y * Mathf.Cos(alignAlpha));
         Vector2 rotatedTurnToDstP = rotate(originalTurnToDstP, alignAlpha);
         bool isCalculationReflectedToRightTurn = (rotatedTurnToDstP.x < 0f);
         if (isCalculationReflectedToRightTurn)
