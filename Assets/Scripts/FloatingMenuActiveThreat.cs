@@ -10,12 +10,28 @@ public class FloatingMenuActiveThreat : FloatingMenu, IPointerClickHandler
     private MapActiveThreat mapActiveThreat;
     public GameObject mainFloatingMenu;
     public GameObject editFloatingMenu;
-    public MapEditorDropDown linkedMapCircleIndexDropdown;
+    public MapEditorDropDown linkedThreatIndexDropdown;
 
     public void initFloatingMenuActiveThreat(MapScenarioManager mapScenarioManager, MapActiveThreat mapActiveThreat)
     {
         this.mapScenarioManager = mapScenarioManager;
         this.mapActiveThreat = mapActiveThreat;
+    }
+
+    public void editValues()
+    {
+        mainFloatingMenu.SetActive(false);
+        editFloatingMenu.SetActive(true);
+    }
+
+    public void editThreatEvents()
+    {
+        mapActiveThreat.editThreatEvents();
+    }
+
+    public void editUserReponseToThreat()
+    {
+        
     }
 
     //public void editMapCircle()

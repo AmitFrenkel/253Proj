@@ -47,6 +47,9 @@ public class MapScenarioManager : MonoBehaviour, IPointerClickHandler
         this.scenario = scenario;
         this.mainContentManager = mainContentManager;
         mapView = new MapView(this.transform.GetComponent<Image>(), "3430.000", "3300.000", "3500.000", "3630.000");
+        flightPath = new FlightPath(mapView);
+        flightPath.buildNavSectionsByAirplaneNav(scenario.airplaneSteerPoints, mapView.getMilesPerLengthUnit());
+
         activeFloatingMenu = null;
 
         flightPathPoints = new List<GameObject>();
@@ -63,8 +66,6 @@ public class MapScenarioManager : MonoBehaviour, IPointerClickHandler
             newMapSteerPoint.GetComponent<MapAirplaneSteerPoint>().initMapAirplaneSteerPoint(this, loopAirplaneSteerPoint, i);
             airplaneSteerPoints.Add(newMapSteerPoint.GetComponent<MapAirplaneSteerPoint>());
         }
-        airplaneSteerPointDragged();
-        updateMapViewAfterSteerPointChanged();
 
         mapActiveCircles = new List<MapActiveCircle>();
         foreach (Scenario.ActiveMapCircle activeMapCircle in scenario.activeMapCircles)
@@ -83,6 +84,9 @@ public class MapScenarioManager : MonoBehaviour, IPointerClickHandler
             newMapActiveThreat.GetComponent<MapActiveThreat>().initMapActiveThreat(this, activeThreat);
             mapActiveThreats.Add(newMapActiveThreat.GetComponent<MapActiveThreat>());
         }
+
+        airplaneSteerPointDragged();
+        updateMapViewAfterSteerPointChanged();
 
     }
 
@@ -205,62 +209,8 @@ public class MapScenarioManager : MonoBehaviour, IPointerClickHandler
             loopDist += spacing;
         }
 
-        foreach (MapThreatEvent loopThreatEventLine in threatEventLines)
-            Destroy(loopThreatEventLine.gameObject);
-        threatEventLines.Clear();
-        foreach (Scenario.ActiveThreat activeThreat in scenario.activeThreats)
-        {
-            Threat threat = mainContentManager.getSimulatorDatabase().getThreatByIndex(activeThreat.activeThreatLinkIndex);
-            string threatName = threat.threatName;
-            foreach (Scenario.ActiveThreat.ActiveThreatEvent activeThreatEvent in activeThreat.activeThreatEvents)
-            {
-                //GameObject threatEventGameObject = Instantiate(threatEventPrefab) as GameObject;
-                //threatEventGameObject.transform.parent = this.transform;
-                //threatEventGameObject.GetComponent<MapThreatEvent>().initMapThreatEvent(this, activeThreatEvent);
-
-                Threat.ThreatLock threatLock = threat.threatLocks[activeThreatEvent.threatLockListIndex];
-                string threatLockName = threatLock.threatLockName;
-                float activeThreatEventDist = activeThreatEvent.threatEventDistance;
-                Vector2 activeThreatEventPos = flightPath.getPosInMilesDist(activeThreatEventDist);
-                Vector2 activeThreatEventPointAtPos = flightPath.getPosInMilesDist(activeThreatEventDist + 0.1f);
-
-                //threatEventGameObject.GetComponent<RectTransform>().anchoredPosition = activeThreatEventPos;
-
-                float diffy = activeThreatEventPointAtPos.y - activeThreatEventPos.y;
-                float diffx = activeThreatEventPointAtPos.x - activeThreatEventPos.x;
-                float rot_z = Mathf.Atan2(diffy, diffx) * Mathf.Rad2Deg;
-                //threatEventGameObject.transform.rotation = Quaternion.Euler(0f, 0f, rot_z - 90f);
-
-                //threatEventGameObject.GetComponent<MapThreatEvent>().setText(threatName + " " + threatLockName);
-                //threatEventLines.Add(threatEventGameObject.GetComponent<MapThreatEvent>());
-
-            }
-
-            //GameObject mapThreatOverPath = Instantiate(mapThreatOverPathPrefab) as GameObject;
-            //mapThreatOverPath.transform.parent = this.transform;
-            //mapThreatOverPath.GetComponent<MapThreatOverPath>().initMesh(this, activeThreat);
-        }
-    }
-
-    public void threatEventDragged(MapThreatEvent threatEvent, Vector2 position)
-    {
-
-        Vector2 anchoredPosition = getMapAnchoredPosition(position);
-        float newDist = flightPath.getDistOfClosestPointOnPath(anchoredPosition);
-
-        Vector2 activeThreatEventPos = flightPath.getPosInMilesDist(newDist);
-        Vector2 activeThreatEventPointAtPos = flightPath.getPosInMilesDist(newDist + 0.1f);
-        if (activeThreatEventPos == activeThreatEventPointAtPos)
-            activeThreatEventPointAtPos = 2f * activeThreatEventPos - flightPath.getPosInMilesDist(newDist - 0.1f);
-
-        threatEvent.gameObject.GetComponent<RectTransform>().anchoredPosition = activeThreatEventPos;
-
-        float diffy = activeThreatEventPointAtPos.y - activeThreatEventPos.y;
-        float diffx = activeThreatEventPointAtPos.x - activeThreatEventPos.x;
-        float rot_z = Mathf.Atan2(diffy, diffx) * Mathf.Rad2Deg;
-        threatEvent.gameObject.transform.rotation = Quaternion.Euler(0f, 0f, rot_z - 90f);
-
-        threatEvent.activeThreatEvent.threatEventDistance = newDist;
+        foreach (MapActiveThreat mapActiveThreat in mapActiveThreats)
+            mapActiveThreat.updateActiveThreatOverPathAfterFlightPathChanged();
 
     }
 
@@ -348,7 +298,7 @@ public class MapScenarioManager : MonoBehaviour, IPointerClickHandler
         Array.Resize(ref arr, arr.Length - 1);
     }
 
-    public void closeAllFloatingMenus()
+    public void closeAllFloatingMenus(bool stopEditThreatEvents = true)
     {
         closeFloatingMenu();
         foreach (MapAirplaneSteerPoint airplaneSteerPoint in airplaneSteerPoints)
@@ -356,8 +306,11 @@ public class MapScenarioManager : MonoBehaviour, IPointerClickHandler
         foreach (MapActiveCircle mapActiveCircle in mapActiveCircles)
             mapActiveCircle.closeFloatingMenu();
         foreach (MapActiveThreat mapActiveThreat in mapActiveThreats)
+        {
             mapActiveThreat.closeFloatingMenu();
-
+            if (stopEditThreatEvents)
+                mapActiveThreat.stopEditThreatEvents();
+        }
     }
 
     private void addFloatingMenuMapView(Vector2 mapPosition)

@@ -325,7 +325,7 @@ public class MainContentManager : MonoBehaviour
                                                  "Tr0",
                                                  5f,
                                                  new Threat.ThreatLock[] {
-                                                     new Threat.ThreatLock("MA0",
+                                                     new Threat.ThreatLock("SEARCH",
                                                                            new string[]{"path_to_symbol.jpg"},
                                                                            "path_to_sound.mp3", new RGBColor())
                                                  },
@@ -337,10 +337,13 @@ public class MainContentManager : MonoBehaviour
                                                  "Tr1",
                                                  7f,
                                                  new Threat.ThreatLock[] {
-                                                     new Threat.ThreatLock("MA1",
-                                                                           new string[]{"path_to_symbol_MA.jpg"},
+                                                     new Threat.ThreatLock("SEARCH",
+                                                                           new string[]{"path_to_symbol_src.jpg"},
                                                                            "path_to_sound2.mp3", new RGBColor()),
-                                                     new Threat.ThreatLock("ML1",
+                                                     new Threat.ThreatLock("MA",
+                                                                           new string[]{"path_to_symbol_ML.jpg"},
+                                                                           "path_to_sound2.mp3", new RGBColor()),
+                                                     new Threat.ThreatLock("ML",
                                                                            new string[]{"path_to_symbol_ML.jpg"},
                                                                            "path_to_sound2.mp3", new RGBColor())
                                                  },
@@ -352,10 +355,13 @@ public class MainContentManager : MonoBehaviour
                                                  "Tr2",
                                                  13f,
                                                  new Threat.ThreatLock[] {
-                                                     new Threat.ThreatLock("MA2",
+                                                     new Threat.ThreatLock("SEARCH",
+                                                                           new string[]{"path_to_symbol_search1.jpg"},
+                                                                           "path_to_sound2.mp3", new RGBColor()),
+                                                     new Threat.ThreatLock("MA",
                                                                            new string[]{"path_to_symbol_MA1.jpg"},
                                                                            "path_to_sound2.mp3", new RGBColor()),
-                                                     new Threat.ThreatLock("ML2",
+                                                     new Threat.ThreatLock("ML",
                                                                            new string[]{"path_to_symbol_ML1.jpg"},
                                                                            "path_to_sound2.mp3", new RGBColor())
                                                  },
@@ -395,7 +401,9 @@ public class MainContentManager : MonoBehaviour
                                                      new Scenario.ActiveThreat[] { new Scenario.ActiveThreat(1,
                                                                                                              new Scenario.SteerPoint("3323.100", "3517.050"),
                                                                                                              new Scenario.ActiveThreat.ActiveThreatEvent[] { new Scenario.ActiveThreat.ActiveThreatEvent(0, 5f, false),
-                                                                                                                                                             new Scenario.ActiveThreat.ActiveThreatEvent(1, 15f, false)},
+                                                                                                                                                             new Scenario.ActiveThreat.ActiveThreatEvent(1, 15f, false),
+                                                                                                                                                             new Scenario.ActiveThreat.ActiveThreatEvent(2, 20f, false),
+                                                                                                                                                             new Scenario.ActiveThreat.ActiveThreatEvent(-1, 22f, false)},
                                                                                                              0.5f,
                                                                                                              2f,
                                                                                                              7f,

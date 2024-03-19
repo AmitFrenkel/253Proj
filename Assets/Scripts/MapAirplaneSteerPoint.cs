@@ -51,7 +51,7 @@ public class MapAirplaneSteerPoint : MonoBehaviour, IDragHandler, IBeginDragHand
     public void OnBeginDrag(PointerEventData eventData)
     {
         isDragging = true;
-        mapScenarioManager.closeFloatingMenu();
+        mapScenarioManager.closeAllFloatingMenus();
     }
 
     public void OnDrag(PointerEventData eventData)
@@ -65,7 +65,7 @@ public class MapAirplaneSteerPoint : MonoBehaviour, IDragHandler, IBeginDragHand
         isDragging = false;
         steerPoint = mapScenarioManager.mapView.FromAnchoredPositionToSteerPoint(this.transform.GetComponent<RectTransform>().anchoredPosition);
         mapScenarioManager.airplaneSteerPointEndDrag(steerPointIndex, steerPoint);
-        mapScenarioManager.closeFloatingMenu();
+        mapScenarioManager.closeAllFloatingMenus();
     }
 
     public float getZRotation()

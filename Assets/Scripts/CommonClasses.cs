@@ -119,6 +119,26 @@ public class SimulatorDatabase
         return getNextFreeIndex(trains.ConvertAll(x => (SimulatorElement)x));
     }
 
+    // ========================= Default Values =========================
+
+
+
+    public bool isParameterExist(string searchValueName)
+    {
+        foreach (FloatHyperParameter floatHyperParameter in floatHyperParameters)
+            if (floatHyperParameter.parameterName == searchValueName)
+                return true;
+        return false;
+    }
+
+    public float getFloatParameterValue(string searchValueName)
+    {
+        foreach (FloatHyperParameter floatHyperParameter in floatHyperParameters)
+            if (floatHyperParameter.parameterName == searchValueName)
+                return floatHyperParameter.parameterValue;
+        return -1f;
+    }
+
 }
 
 [System.Serializable]

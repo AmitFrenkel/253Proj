@@ -50,7 +50,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e5cc9d70f30944d61b83bc041fa5400e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  material: {fileID: 2100000, guid: ae1429ef3f9f945a984f81c380ea6de9, type: 2}
+  baseMaterial: {fileID: 2100000, guid: ae1429ef3f9f945a984f81c380ea6de9, type: 2}
 --- !u!222 &941768400343140520
 CanvasRenderer:
   m_ObjectHideFlags: 0

@@ -4,29 +4,55 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
-public class MapThreatOverPath : MonoBehaviour, IPointerClickHandler
+public class MapThreatOverPath : MonoBehaviour
 {
 
     Vector3[] newVertices;
     int[] newTriangles;
-    public Material material;
+    public Material baseMaterial;
+    private Material material;
+    private MapScenarioManager mapScenarioManager;
+    private FlightPath flightPath;
+    private float firstDist;
+    private float lastDist;
 
     private const float threatOverPathWidthMiles = 3f;
-
     private const float distSpaceBetweenMeshNodesInMiles = 0.5f;
+    private Color pathColor;
 
-    public void initMesh(MapScenarioManager mapScenarioManager, Scenario.ActiveThreat activeThreat)
+    public void initMesh(MapScenarioManager mapScenarioManager, float firstDist, float lastDist, Color baseColor, bool isBoldColor)
     {
-        FlightPath flightPath = mapScenarioManager.getFlightPath();
-        float firstDist = activeThreat.activeThreatEvents[0].threatEventDistance;
-        float lastDist = activeThreat.activeThreatEvents[activeThreat.activeThreatEvents.Length-1].threatEventDistance;
+        this.mapScenarioManager = mapScenarioManager;
+        this.firstDist = firstDist;
+        this.lastDist = lastDist;
+
+        this.transform.GetComponent<RectTransform>().anchoredPosition = new Vector2(0f, 0f);
+
+        float h_color = 0f;
+        float s_color = 0f;
+        float v_color = 0f;
+        Color.RGBToHSV(baseColor, out h_color, out s_color, out v_color);
+        Color matColor = Color.HSVToRGB(h_color, isBoldColor ? s_color : s_color/5f, v_color);
+        matColor.a = 0.3f;
+        pathColor = matColor;
+        material = new Material(baseMaterial);
+        material.SetColor("_Color", matColor);
+        //material.color = matColor;
+
+        buildMesh();
+
+    }
+
+    public void buildMesh()
+    {
         int nodes = Mathf.RoundToInt((lastDist - firstDist) / distSpaceBetweenMeshNodesInMiles);
         float distBetweenNodes = (lastDist - firstDist) / (nodes - 1);
         float threatOverPathWidth = threatOverPathWidthMiles / mapScenarioManager.mapView.getMilesPerLengthUnit();
+        flightPath = mapScenarioManager.getFlightPath();
 
         Mesh mesh = new Mesh();
-        newVertices = new Vector3[2* nodes];
-        for (int i=0; i<nodes; i++)
+        newVertices = new Vector3[2 * nodes];
+        for (int i = 0; i < nodes; i++)
         {
             float loopDist = firstDist + i * distBetweenNodes;
             Vector2[] posAndRightVec = flightPath.getPosAndRightDirInMilesDist(loopDist);
@@ -38,7 +64,7 @@ public class MapThreatOverPath : MonoBehaviour, IPointerClickHandler
         newTriangles = new int[numTriangles * 3];
 
         int loopVertexIndex = 0;
-        for (int i=0; i<numTriangles*3; i+=6)
+        for (int i = 0; i < numTriangles * 3; i += 6)
         {
             newTriangles[i + 0] = loopVertexIndex + 0;
             newTriangles[i + 1] = loopVertexIndex + 2;
@@ -49,11 +75,6 @@ public class MapThreatOverPath : MonoBehaviour, IPointerClickHandler
             loopVertexIndex += 2;
         }
 
-        //newVertices[0] = new Vector3(0f, 0f, 0f);
-        //newVertices[1] = new Vector3(0f, 100f, 0f);
-        //newVertices[2] = new Vector3(100f, 200f, 0f);
-        //newVertices[3] = new Vector3(100f, 0f, 0f);
-
         mesh.vertices = newVertices;
         mesh.triangles = newTriangles;
 
@@ -61,14 +82,6 @@ public class MapThreatOverPath : MonoBehaviour, IPointerClickHandler
         canvasRenderer.materialCount = 1;
         canvasRenderer.SetMaterial(material, 0);
         canvasRenderer.SetMesh(mesh);
-
-        //Graphics.DrawMesh(mesh, Matrix4x4.identity, material, 0);
-
-        this.transform.GetComponent<RectTransform>().anchoredPosition = new Vector2(0f, 0f);
     }
 
-    public void OnPointerClick(PointerEventData eventData)
-    {
-        Debug.Log("click on threat!");
-    }
 }
